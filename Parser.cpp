@@ -72,6 +72,7 @@ bool Parser::Process()
 			for (int w = 0; w < width; w++) {
 				int index = h * width + w;	//インデックス設定
 				unsigned int tiledValue = data["layers"][layer]["data"][index];	//TILEDのデータ値
+				//最後の値のときのみ、空の場合も生成
 				//値が0のときは何もないのでスキップ
 				if (tiledValue != 0) {
 					//データ変換関数
@@ -87,6 +88,9 @@ bool Parser::Process()
 						OutText("変換に失敗しました。(" + to_string(index) + ")", OS_ERROR);
 						return End();
 					}
+				}
+				else if (index == height * width - 1) {
+					output << "   AllocatedCells(" << index << ")=()\n";
 				}
 			}
 		}
@@ -157,6 +161,8 @@ void Parser::ConvertData(unsigned int tiledValue, string* uePath, int* ueTileVal
 			//*ueTileValue = gid - data["tilesets"][tilesetID]["firstgid"];
 			*uePath = linkPathData[data["tilesets"][tilesetID]["source"]]["ue4"];
 			*ueTileValue = tiledValue - data["tilesets"][tilesetID]["firstgid"];
+
+			cout << "CONVERT " << tiledValue << " -> " << *ueTileValue << endl;
 			break;
 		}
 	}
