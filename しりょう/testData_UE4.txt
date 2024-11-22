@@ -1,0 +1,52 @@
+Begin Object Class=/Script/Paper2D.PaperTileLayer Name="PaperTileLayer_0"
+   LayerName=NSLOCTEXT("", "3DDD2C094A9F58876D6C228E43C0F8C9", "eventLayer")
+   LayerHeight=3
+   AllocatedHeight=3
+   AllocatedCells(0)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_event_TileSet.tileset_event_TileSet"',PackedTileIndex=0)
+   AllocatedCells(1)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_event_TileSet.tileset_event_TileSet"',PackedTileIndex=1)
+   AllocatedCells.RemoveIndex(15)
+   AllocatedCells.RemoveIndex(14)
+   AllocatedCells.RemoveIndex(13)
+   AllocatedCells.RemoveIndex(12)
+End Object
+
+Begin Object Class=/Script/Paper2D.PaperTileLayer Name="PaperTileLayer_1"
+   LayerName=NSLOCTEXT("", "4517F9184BDDEF4158EEC0BD84325B71", "stage")
+   LayerHeight=3
+   AllocatedHeight=3
+   AllocatedCells(2)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_event_TileSet.tileset_event_TileSet"',PackedTileIndex=8)
+   AllocatedCells(4)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=48)
+   AllocatedCells(5)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=-1610612688)
+   AllocatedCells(6)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=-1073741776)
+   AllocatedCells(7)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=1610612784)
+   AllocatedCells(8)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=-2147483600)
+   AllocatedCells(9)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=-536870864)
+   AllocatedCells(10)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=1073741872)
+   AllocatedCells(11)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=536870960)
+   AllocatedCells.RemoveIndex(15)
+   AllocatedCells.RemoveIndex(14)
+   AllocatedCells.RemoveIndex(13)
+   AllocatedCells.RemoveIndex(12)
+End Object
+
+Begin Object Class=/Script/Paper2D.PaperTileLayer Name="PaperTileLayer_2"
+   LayerName=NSLOCTEXT("", "0213BF9D42E00C8E8F4BB0A9D6730A6A", "background")
+   LayerHeight=3
+   AllocatedHeight=3
+   AllocatedCells(0)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=24)
+   AllocatedCells(1)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=24)
+   AllocatedCells(2)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=24)
+   AllocatedCells(3)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=24)
+   AllocatedCells(4)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=24)
+   AllocatedCells(5)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=24)
+   AllocatedCells(6)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=24)
+   AllocatedCells(7)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=24)
+   AllocatedCells(8)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=24)
+   AllocatedCells(9)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=24)
+   AllocatedCells(10)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=24)
+   AllocatedCells(11)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=24)
+   AllocatedCells.RemoveIndex(15)
+   AllocatedCells.RemoveIndex(14)
+   AllocatedCells.RemoveIndex(13)
+   AllocatedCells.RemoveIndex(12)
+End Object

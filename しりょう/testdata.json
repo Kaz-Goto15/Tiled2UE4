@@ -1,0 +1,70 @@
+{ "compressionlevel":-1,
+ "editorsettings":
+    {
+     "export":
+        {
+         "format":"json",
+         "target":"t43-4.json"
+        }
+    },
+ "height":3,
+ "infinite":false,
+  "layers": [
+    {
+      "data": [ 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24 ],
+      "height": 3,
+      "id": 5,
+      "tileset":"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet",
+      "name": "background",
+      "opacity": 1,
+      "type": "tilelayer",
+      "visible": true,
+      "width": 4,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "data": [ 0, 0, 17, 0, 113, 2684354673, 3221225585, 1610612849, 2147483761, 3758096497, 1073741937, 536871025 ],
+      "height": 3,
+      "id": 4,
+      "name": "stage",
+      "opacity": 1,
+      "type": "tilelayer",
+      "visible": true,
+      "width": 4,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "data": [ 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      "height": 3,
+      "id": 2,
+      "name": "eventLayer",
+      "opacity": 1,
+      "type": "tilelayer",
+      "visible": true,
+      "width": 4,
+      "x": 0,
+      "y": 0
+    }
+  ],
+ "nextlayerid":6,
+ "nextobjectid":1,
+ "orientation":"orthogonal",
+ "renderorder":"right-down",
+ "tiledversion":"2021.03.23",
+ "tileheight":16,
+ "tilesets":[
+        {
+         "firstgid":1,
+         "source":"event.tsx"
+        }, 
+        {
+         "firstgid":65,
+         "source":"field.tsx"
+        }],
+ "tilewidth":16,
+ "type":"map",
+ "version":1.5,
+ "width":4
+}

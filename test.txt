@@ -1,0 +1,47 @@
+Begin Object Class=/Script/Paper2D.PaperTileLayer Name=""
+   LayerName=NSLOCTEXT("", "", "background")
+   LayerWidth=4
+   LayerHeight=3
+   AllocatedWidth=4
+   AllocatedHeight=3
+   AllocatedCells(0)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=89)
+   AllocatedCells(1)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=89)
+   AllocatedCells(2)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=89)
+   AllocatedCells(3)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=89)
+   AllocatedCells(4)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=89)
+   AllocatedCells(5)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=89)
+   AllocatedCells(6)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=89)
+   AllocatedCells(7)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=89)
+   AllocatedCells(8)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=89)
+   AllocatedCells(9)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=89)
+   AllocatedCells(10)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=89)
+   AllocatedCells(11)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=89)
+End Object
+
+Begin Object Class=/Script/Paper2D.PaperTileLayer Name=""
+   LayerName=NSLOCTEXT("", "", "stage")
+   LayerWidth=4
+   LayerHeight=3
+   AllocatedWidth=4
+   AllocatedHeight=3
+   AllocatedCells(2)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_event_TileSet.tileset_event_TileSet"',PackedTileIndex=17)
+   AllocatedCells(4)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=113)
+   AllocatedCells(5)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=-1610612623)
+   AllocatedCells(6)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=-1073741711)
+   AllocatedCells(7)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=1610612849)
+   AllocatedCells(8)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=-2147483535)
+   AllocatedCells(9)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=-536870799)
+   AllocatedCells(10)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=1073741937)
+   AllocatedCells(11)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"',PackedTileIndex=536871025)
+End Object
+
+Begin Object Class=/Script/Paper2D.PaperTileLayer Name=""
+   LayerName=NSLOCTEXT("", "", "eventLayer")
+   LayerWidth=4
+   LayerHeight=3
+   AllocatedWidth=4
+   AllocatedHeight=3
+   AllocatedCells(0)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_event_TileSet.tileset_event_TileSet"',PackedTileIndex=1)
+   AllocatedCells(1)=(TileSet=PaperTileSet'"/Game/Assets/tilemap/tileset_event_TileSet.tileset_event_TileSet"',PackedTileIndex=2)
+End Object
+

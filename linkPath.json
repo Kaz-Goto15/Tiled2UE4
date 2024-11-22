@@ -1,0 +1,8 @@
+{
+  "event.tsx": {
+    "ue4": "/Game/Assets/tilemap/tileset_event_TileSet.tileset_event_TileSet"
+  },
+  "field.tsx": {
+    "ue4": "/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet"
+  }
+}
