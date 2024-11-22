@@ -3,7 +3,7 @@
 #include "./Include/json.hpp"
 #include <iostream>
 #include <fstream>
-
+#include <filesystem>
 #include <string>
 
 #include <bitset>
@@ -23,6 +23,7 @@ public:
 	bool Process();
 private:
 	json data, linkPathData;
+	std::filesystem::path exePath;
 	enum OUTPUT_STATE {
 		OS_NONE,
 		OS_INFO,
@@ -32,7 +33,7 @@ private:
 
 	bool SelectFile(string* path);
 	bool End();
-	//void Result();
+	void Result();
 	void ConvertData(unsigned int tiledValue, string* uePath, int* ueTileValue);
 	void OutText(string str, OUTPUT_STATE outState = OS_NONE);
 

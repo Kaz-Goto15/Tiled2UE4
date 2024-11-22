@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <cmath>
-#include <filesystem>
+
 
 using namespace std;
 
@@ -35,8 +35,9 @@ bool Parser::Init(int argc, char* argv[])
 	//json読込
 	std::ifstream f(filePath);
 	//自身のディレクトリと組み合わせないとエラる
-	std::filesystem::path path(argv[0]);
-	string lpPath = path.parent_path().string() + "\\linkPath.json";
+	// (argv[0]);
+	exePath = argv[0];
+	string lpPath = exePath.parent_path().string() + "\\linkPath.json";
 	cout << lpPath << endl;
 	std::ifstream lp(lpPath);
 	try {
@@ -47,6 +48,8 @@ bool Parser::Init(int argc, char* argv[])
 		linkPathData = json::parse(lp);
 	}
 	catch (json::parse_error e) { cout << e.what() << endl; }
+
+	return true;
 }
 
 bool Parser::Process()
@@ -55,7 +58,7 @@ bool Parser::Process()
 	int height = data["height"];
 	int width = data["width"];
 
-	ofstream output("test.txt");
+	ofstream output(exePath.parent_path().string() + "\\output.txt");
 	for (int layer = 0; layer < data["layers"].size(); layer++) {
 		output << "Begin Object Class=/Script/Paper2D.PaperTileLayer Name=\"\"\n";
 		output << "   LayerName=NSLOCTEXT(\"\", \"\", " << data["layers"][layer]["name"] << ")\n";
@@ -89,7 +92,7 @@ bool Parser::Process()
 		}
 		output << "End Object\n\n";
 	}
-	//Result();
+	Result();
 	return 0;
 }
 
@@ -126,10 +129,10 @@ bool Parser::End() {
 	_getch(); // キー入力を待機（入力内容は表示されない）
 	return 0;
 }
-//void Parser::Result() {
-//	cout << "けっか" << endl;
-//	End();
-//}
+void Parser::Result() {
+	cout << "けっか" << endl;
+	End();
+}
 
 //ここの処理をかいておわり 多分そうでもないけど
 void Parser::ConvertData(unsigned int tiledValue, string* uePath, int* ueTileValue) {
