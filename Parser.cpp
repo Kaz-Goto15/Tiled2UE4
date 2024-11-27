@@ -1,7 +1,9 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "Parser.h"
 
 #include <iostream>
 #include <cmath>
+
 
 
 using namespace std;
@@ -13,9 +15,9 @@ Parser::Parser()
 bool Parser::Init(char* exePath) {
 	//実行ファイルのディレクトリを取得
 	std::filesystem::path path = exePath;
-	exeDir = path.parent_path().string();
+	outDir = path.parent_path().string() + "\\output\\";
 	//TiledとUE4のリンクファイルを読込
-	string lpPath = exeDir + "\\linkPath.json";
+	string lpPath = path.parent_path().string() + "\\linkPath.json";
 	if (filesystem::exists(lpPath)) {
 		std::ifstream lp(lpPath);
 
@@ -30,9 +32,9 @@ bool Parser::Init(char* exePath) {
 		return 0;
 	}
 
-	if (!filesystem::is_directory(exeDir + "\\output")) {
+	if (!filesystem::is_directory(outDir)) {
 		OutText("出力フォルダがありません。ディレクトリを自動追加します。", OS_WARNING);
-		if (!filesystem::create_directory(exeDir + "\\output")) {
+		if (!filesystem::create_directory(outDir)) {
 			OutText("出力フォルダの作成に失敗しました。管理者権限が必要な場所で実行しているか、容量が足りない可能性があります。", OS_ERROR);
 			return 0;
 		};
@@ -136,7 +138,7 @@ bool Parser::Read(string _path, json* data)
 
 	//if (1/*Unicodeがあるか*/) {
 	//	//データコピー
-	//	string tmpPath = exeDir + "\\output\\uniTemp.tmp";
+	//	string tmpPath = outDir + "uniTemp.tmp";
 	//	ofstream tmp(tmpPath);
 	//	tmp << 
 	//	//std::filesystem::path path = _path;
@@ -158,12 +160,21 @@ bool Parser::Read(string _path, json* data)
 
 void Parser::Parse(string _path, json _data)
 {
-	
 	//WHを持ってくる
 	int height = _data["height"];
 	int width = _data["width"];
 
-	ofstream output(exeDir + "\\output\\" + filesystem::path(_path).stem().string() + "_output.txt");
+	string outFile = outDir + filesystem::path(_path).stem().string();
+	if (filesystem::exists(outFile + "_output.txt") || filesystem::exists(outFile + ".json")) {
+		OutText("出力フォルダ内に選択したファイルと同じ名前のファイルが存在します。ナンバリングを行います。", OS_WARNING);
+		time_t now = time(nullptr);
+		auto nowM = localtime(&now);
+		ostringstream oss;
+		oss << put_time(localtime(&now), "_%Y%m%d%H%M%S");
+		outFile += oss.str();
+		cout << outFile << endl;
+	}
+	ofstream output(outFile + "_output.txt");
 	for (int layer = 0; layer < _data["layers"].size(); layer++) {
 		output << "Begin Object Class=/Script/Paper2D.PaperTileLayer Name=\"\"\n";
 		output << "   LayerName=NSLOCTEXT(\"\", \"\", " << _data["layers"][layer]["name"] << ")\n";
@@ -210,7 +221,7 @@ void Parser::Parse(string _path, json _data)
 		{"tilewidth", _data["tilewidth"]},
 		{"version", _data["version"]}
 	};
-	ofstream outJson(exeDir + "\\output\\" + filesystem::path(_path).stem().string() + ".json");
+	ofstream outJson(outFile + ".json");
 	outJson << convJson;
 	outJson.close();
 }

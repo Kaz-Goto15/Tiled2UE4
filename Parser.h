@@ -38,7 +38,7 @@ private:
 	};
 
 	//‰Šú‰»
-	string exeDir;
+	string outDir;
 	bool Init(char* exePath);
 
 	//•ÏŠ·ƒf[ƒ^Œn
