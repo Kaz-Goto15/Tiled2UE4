@@ -133,19 +133,26 @@ void Parser::SelectFile(vector<string>* paths)
 
 bool Parser::Read(string _path, json* data)
 {
-	std::filesystem::path path = _path;
-	path.replace_extension(".json");
 
-	//json読込
-	std::ifstream f(path);
-	//std::ifstream f(path.string());
+	//if (1/*Unicodeがあるか*/) {
+	//	//データコピー
+	//	string tmpPath = exeDir + "\\output\\uniTemp.tmp";
+	//	ofstream tmp(tmpPath);
+	//	tmp << 
+	//	//std::filesystem::path path = _path;
+	//	//path.replace_extension(".json");
+	//}
+	//else {
+		//json読込
+		filesystem::path inPath = _path;
+		std::ifstream f(_path);
+		try { *data = json::parse(f); }
+		catch (json::parse_error e) {
+			OutText("マップデータの読込に失敗しました：" + (string)(e.what()), OS_ERROR);
+			return false;
+		}
 
-	try { *data = json::parse(f); }
-	catch (json::parse_error e) {
-		OutText("マップデータの読込に失敗しました：" + (string)(e.what()), OS_ERROR);
-		return false;
-	}
-
+	//}
 	return true;
 }
 
