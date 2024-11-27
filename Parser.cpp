@@ -47,12 +47,17 @@ bool Parser::Process(int argc, char* argv[])
 		OutText("パーサのセットアップが完了", OS_INFO);
 	}
 	else {
-		OutText("セットアップ時に問題が発生しました。", OS_ERROR);
+		OutText("セットアップ時に問題が発生しました。処理を終了します。", OS_NONE);
+		End();
 		return false;
 	}
 
 	//ファイル選択
-	if (!StoreParseFile(argc, argv, &parsePaths))return false;
+	if (!StoreParseFile(argc, argv, &parsePaths)) {
+		OutText("ファイルが選択されませんでした。処理を終了します。", OS_NONE);
+		End();
+		return false;
+	}
 
 	//読込+処理
 	for (int i = 0; i < parsePaths.size(); i++) {
@@ -86,7 +91,7 @@ bool Parser::StoreParseFile(int argc, char* argv[], vector<string>* paths)
 		OutText("変換するファイルを選択してください。", OS_INFO);
 		SelectFile(paths);
 		if (paths->size() == 0) {
-			OutText("ファイルが選択されませんでした。終了します。", OS_INFO);
+			//OutText("ファイルが選択されませんでした。終了します。", OS_INFO);
 			return false;
 		}
 		else {
