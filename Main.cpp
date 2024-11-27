@@ -2,6 +2,6 @@
 
 int main(int argc, char* argv[]){
 	Parser* parser = new Parser();
-	if(parser->Init(argc, argv))
-	return parser->Process();
+	//if(parser->Init())
+	return parser->Process(argc, argv);
 }

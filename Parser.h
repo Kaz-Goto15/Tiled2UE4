@@ -5,6 +5,7 @@
 #include <fstream>
 #include <filesystem>
 #include <string>
+#include <vector>
 
 #include <bitset>
 #include <sstream>
@@ -12,18 +13,23 @@
 #include <conio.h>	//キー押す要因
 using std::bitset;
 
+using std::vector;
 using json = nlohmann::json;
 using std::string;
 
 class Parser
 {
 public:
+	//コンストラクタ
 	Parser();
-	bool Init(int argc, char* argv[]);
-	bool Process();
+	//メイン処理機構
+	bool Process(int argc, char* argv[]);
+
 private:
-	json data, linkPathData;
-	std::filesystem::path exePath;
+	json linkPathData;
+
+	json data;	//読込jsonデータの格納変数
+
 	enum OUTPUT_STATE {
 		OS_NONE,
 		OS_INFO,
@@ -31,7 +37,17 @@ private:
 		OS_ERROR
 	};
 
-	bool SelectFile(string* path);
+	//初期化
+	string exeDir;
+	bool Init(char* exePath);
+
+	//変換データ系
+	vector<string> parsePaths;	//変換データのパスを格納する配列
+	bool StoreParseFile(int argc, char* argv[], vector<string>* paths);	//読込-基本
+	void SelectFile(vector<string>* paths);								//読込-ウィンドウ選択
+	bool Read(string _path, json* _data);								//マップデータを読み込みデータを格納する
+	void Parse(string _path, json data);								//変換
+
 	bool End();
 	void Result();
 	void ConvertData(unsigned int tiledValue, string* uePath, int* ueTileValue);
