@@ -146,6 +146,7 @@ bool Parser::Read(string _path, json* data)
 
 void Parser::Parse(string _path, json _data)
 {
+	
 	//WH‚ğ‚Á‚Ä‚­‚é
 	int height = _data["height"];
 	int width = _data["width"];
@@ -188,7 +189,18 @@ void Parser::Parse(string _path, json _data)
 		}
 		output << "End Object\n\n";
 	}
-
+	json convJson;
+	convJson = {
+		{"height", _data["height"]},
+		{"width", _data["width"]},
+		{"orientation", _data["orientation"]},
+		{"tileheight", _data["tileheight"]},
+		{"tilewidth", _data["tilewidth"]},
+		{"version", _data["version"]}
+	};
+	ofstream outJson(exeDir + "\\output\\" + filesystem::path(_path).stem().string() + ".json");
+	outJson << convJson;
+	outJson.close();
 }
 
 bool Parser::End() {
