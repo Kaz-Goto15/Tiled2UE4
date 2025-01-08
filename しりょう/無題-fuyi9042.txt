@@ -1,0 +1,29 @@
+tilesetLayer = data["tillesets"][tilesetID]["source"];	//マップデータから引っ張ってきたレイヤー名
+
+//何かしらの変換で tilesetLayer から pathIndex を得る	//レイヤー名を参照してリンクファイルのindexを得る　jsonのfindはできるといえばできるが全数検索
+pathIndex = arr[tilesetLayer];
+
+data[pathIndex]["ue4"];					//indexからue4のパスを得る
+
+
+
+.json
+・タイルマップパスがわかる
+
+.tsx
+・参照画像がわかる
+
+.uasset/tileset
+・参照テクスチャがわかる？
+
+.uasset/texture
+・参照画像がわかる？
+
+linkPath.json
+・タイルマップパスとuassetパスを紐づける
+
+①jsonを見て、使用されているタイルセットパスを見る
+②-1リンクファイルにタイルセットパスがあるなら、終わり
+②-2なければ、③へ
+③-1-1タイルセットを開き、xmlからimage sourceを取る
+③-1-2リンクファイルの全てのxmlをバイナリ変換からtextureファイルを取り、textureファイル

@@ -3,8 +3,9 @@
 
 #include <iostream>
 #include <cmath>
+#include <regex>
 
-
+#include <d3d11.h>
 
 using namespace std;
 
@@ -15,13 +16,17 @@ Parser::Parser()
 bool Parser::Init(char* exePath) {
 	//実行ファイルのディレクトリを取得
 	std::filesystem::path path = exePath;
-	outDir = path.parent_path().string() + "\\output\\";
+	parentDir = path.parent_path().string();
+	outDir = parentDir + "\\output\\";
+
 	//TiledとUE4のリンクファイルを読込
-	string lpPath = path.parent_path().string() + "\\linkPath.json";
+	string lpPath = parentDir + "\\linkPath.json";
 	if (filesystem::exists(lpPath)) {
 		std::ifstream lp(lpPath);
 
-		try { linkPathData = json::parse(lp); }
+		try {
+			linkPathJson = json::parse(lp);
+		}
 		catch (json::parse_error e) {
 			OutText("リンクパスファイルの読込時に問題が発生しました：" + (string)e.what(), OS_ERROR);
 			return false;
@@ -63,7 +68,9 @@ bool Parser::Process(int argc, char* argv[])
 
 	//読込+処理
 	for (int i = 0; i < parsePaths.size(); i++) {
+		Br();
 		OutText(parsePaths[i] + " を変換しています...(" + to_string(i + 1) + "/" + to_string(parsePaths.size()) + ")", OS_INFO);
+		Br();
 
 		//読込
 		if (!Read(parsePaths[i], &data))continue;
@@ -91,7 +98,7 @@ bool Parser::StoreParseFile(int argc, char* argv[], vector<string>* paths)
 	//引数がない場合(argcが1以下)
 	else {
 		OutText("変換するファイルを選択してください。", OS_INFO);
-		SelectFile(paths);
+		SelectFile(paths, "マップデータ", "json", PGetCurrentDirectory());
 		if (paths->size() == 0) {
 			//OutText("ファイルが選択されませんでした。終了します。", OS_INFO);
 			return false;
@@ -106,24 +113,65 @@ bool Parser::StoreParseFile(int argc, char* argv[], vector<string>* paths)
 	return true;
 }
 
-void Parser::SelectFile(vector<string>* paths)
+void Parser::SelectFile(vector<string>* paths, string overview, string ext, string dir, bool enAllFile)
 {
+	string currentDir = PGetCurrentDirectory();
+
+	if (dir != "") {
+		SetCurrentDirectory(dir.c_str());
+	}
+
 	char fileName[MAX_PATH] = "";  //ファイル名を入れる変数
+
+	vector<char> filterArr;
+	string strFilter = overview + "(*." + ext + ")\0*." + ext + "\0";
+	string strFilterAll = "すべてのファイル(*.*)\0*.*\0\0";
+
+
+	auto AddFilter = [=](vector<char>* flt, STR_FILTER& addFlt) {
+		string overview = addFlt.descr + "(*." + addFlt.ext + ")";
+		string ext = "*." + addFlt.ext;
+
+		flt->insert(flt->end(), overview.begin(), overview.end());
+		flt->push_back('\0');
+		flt->insert(flt->end(), ext.begin(), ext.end());
+		flt->push_back('\0');
+	};
+
+	//指定フィルタ追加
+	STR_FILTER filter;
+	filter.descr = overview;
+	filter.ext = ext;
+	STR_FILTER gtes;
+	gtes = { "aaa","Bbbb" };
+	//全ファイルフィルタ追加
+	STR_FILTER filterAll;
+	filterAll.descr = "すべてのファイル";
+	filterAll.ext = "*";
+
+	AddFilter(&filterArr, filter);
+	AddFilter(&filterArr, gtes);
+	AddFilter(&filterArr, filterAll);
+
+	// フィルタ文字列全体を NULL 終端する
+	filterArr.push_back('\0');
+
+	if (enAllFile) strFilter += strFilterAll;
 
 	//「ファイルを開く」ダイアログの設定
 	OPENFILENAME ofn;                         	//名前をつけて保存ダイアログの設定用構造体
 	ZeroMemory(&ofn, sizeof(ofn));            	//構造体初期化
 	ofn.lStructSize = sizeof(OPENFILENAME);   	//構造体のサイズ
-	ofn.lpstrFilter = TEXT("マップデータ(*.json)\0*.json\0")			//─┬ファイルの種類
-		TEXT("すべてのファイル(*.*)\0*.*\0\0");                     //─┘
+	ofn.lpstrFilter = filterArr.data();
 	ofn.lpstrFile = fileName;               	//ファイル名
 	ofn.nMaxFile = MAX_PATH;               	//パスの最大文字数
+	ofn.Flags = OFN_ALLOWMULTISELECT;	//これで複数選択ができそう
 	//ofn.Flags = OFN_OVERWRITEPROMPT;   		//フラグ（同名ファイルが存在したら上書き確認）
 	ofn.lpstrDefExt = "json";                  	//デフォルト拡張子
-
+	
 	//「ファイルを開く」ダイアログ
 	BOOL selFile;
-	selFile = GetOpenFileName(&ofn);
+	selFile = GetOpenFileNameA(&ofn);
 
 	//キャンセルしたら中断
 	if (selFile == FALSE) return;
@@ -131,11 +179,16 @@ void Parser::SelectFile(vector<string>* paths)
 	//複数取る方法わからんので今は1個だけプッシュ
 	paths->push_back(fileName);
 
+
+	SetCurrentDirectory(currentDir.c_str());
 }
 
-bool Parser::Read(string _path, json* data)
+bool Parser::Read(string _path, json* _data)
 {
+	//初期化
+	useLinkDataIndexes.clear();
 
+	json& linkData = linkPathJson["linkData"];
 	//if (1/*Unicodeがあるか*/) {
 	//	//データコピー
 	//	string tmpPath = outDir + "uniTemp.tmp";
@@ -148,13 +201,225 @@ bool Parser::Read(string _path, json* data)
 		//json読込
 		filesystem::path inPath = _path;
 		std::ifstream f(_path);
-		try { *data = json::parse(f); }
+		try { *_data = json::parse(f); }
 		catch (json::parse_error e) {
 			OutText("マップデータの読込に失敗しました：" + (string)(e.what()), OS_ERROR);
 			return false;
 		}
 
 	//}
+	
+	
+	bool isLinked = false;
+	//使用したタイルセットがUEパスと紐付けられているか
+	for (json& source : (*_data)["tilesets"]) {
+		string sourcePath = source["source"];
+		isLinked = false;	//一旦リンクされてない判定にする
+
+		for (int index = 0; index < linkData.size(); index++) {
+			string linkPath = linkData[index]["tiled"];
+			
+			if (sourcePath == linkPath) {
+				//存在した場合
+				useLinkDataIndexes.push_back(index);	//json内の使用タイルセットインデックス(0から順にループしているためpush_backでOK)とlinkPathのインデックスを紐付け
+				isLinked = true;
+				break;
+			}
+		}
+		//存在しなかった場合
+		if (!isLinked) {
+			OutText("使用タイルセット " + sourcePath + " がリンクされていません。", OS_ERROR);
+
+			vector<int> sameFileNameIndexes;
+			//まずは使用タイルセットのファイル名と同じファイル名がリンクファイルに登録されているか判定
+			string sourceStem = GetStem(sourcePath);
+			for (int index = 0; index < linkData.size(); index++) {
+				string linkPath = linkData[index]["tiled"];
+				if (GetStem(linkPath) == sourceStem) {
+					sameFileNameIndexes.push_back(index);
+				}
+			}
+			//あった場合、UEのパスと表示する
+			if (sameFileNameIndexes.size() > 0) {
+				OutText("リンクファイルからパスのみが異なる同名のリンクデータが見つかりました。同じUEアセットをリンクする場合、対応する番号を入力してください。\n", OS_INFO);
+				OutText("  [" + to_string(0) + "] : 選択しない");
+				for (int i = 0; i < sameFileNameIndexes.size(); i++) {
+					//if (i > 6) {
+					//	pages++;		//8以上の重複ファイルに対応するにはここらへんをいじる
+					//}
+					OutText("  [" + to_string(i+1) + "] : " + 
+						to_string(linkData[sameFileNameIndexes[i]]["tiled"]) + " <-> " +
+						to_string(linkData[sameFileNameIndexes[i]]["ue4"])
+					);
+				}
+				char inch = 0x00;
+				while (inch < '0' || inch > '9') {
+					inch = GetKey("番号を入力：");
+					if (inch == '0')break;
+					if (inch >= '1' && inch <= '7') {
+
+						//番号内ならば処理する、番号外ならもう一回
+						if ((inch - '0') <= sameFileNameIndexes.size()) {
+							//リンク処理
+							OutText(sourcePath + " と " + to_string(linkData[sameFileNameIndexes[inch - '1']]["ue4"]) + "をリンクします。", OS_INFO);
+							json value;
+							value += json::object_t::value_type("tiled", sourcePath);
+							value += json::object_t::value_type("ue4", linkData[sameFileNameIndexes[inch - '1']]["ue4"]);
+							try {
+								linkData.push_back(value);
+								OutputJson(parentDir + "\\linkPath.json", linkPathJson);
+							}
+							catch (json::type_error e) {
+								OutText("保存時にエラーが発生しました(" + (string)e.what(), OS_ERROR);
+							}
+							break;
+						}
+					}
+					//if (inch == '8') {
+					//	if (nowPage > 0)nowPage--;
+					//	PrintPage(nowPage);
+					//}
+					//if (inch == '9') {
+					//	if (nowPage < maxPage)nowPage++;
+					//	PrintPage(nowPage);
+					//}
+				}
+			}
+			//ない場合、ほかの処理を選択させる
+
+			OutText("未リンクのタイルセット " + to_string(source["source"]) + " に対する処理を選択してください。", OS_INFO);
+			vector<string> noLinkedProcStrArr = {
+				"読込処理を中止",
+				"リンク済リストから選択してリンク",
+				"エクスプローラからuassetファイルを選択してリンク",
+				"UE4内でコピペしたアセットパスを直接記入してリンク"
+			};
+			PrintStrList(&noLinkedProcStrArr);
+			bool endFlag = false;
+			//string in;
+			while (!endFlag) {
+				char in;
+				while (true) {
+					in = GetKey("  処理番号を入力:");
+
+					if (in < '0' || (in-'0') >= noLinkedProcStrArr.size()) {
+						//cout << "無効な処理番号です。" << endl;
+					}
+					else break;
+				}
+
+				string inputAsset = "";
+				vector<string> vstr;
+				switch (in)
+				{
+				case '0':	//中止
+					OutText("このマップデータの読込を中止しました。", OS_INFO);
+					return false;
+					break;
+				case '1':	//リンク済リストから選択
+					OutText("以下のリストにある場合、左のインデックスを入力してください。");
+					for (int index = 0; index < linkData.size(); index++) {
+						OutText(index + " -> " + to_string(linkData[index]["ue4"]), OS_NONE);
+					}
+					break;
+				case '2':	//エクスプローラ選択
+					//エクスプローラの設定
+					SelectFile(&vstr,"uassetファイル", "uasset", linkPathJson["projectPath"]);
+					//最初はiniファイルのディレクトリを指定
+					//バイナリからタイルセットかどうかを確認する(タイルセットじゃなかったら警告を入れる)
+					//リンクデータを追加する
+
+					break;
+				case '3':	//パス入力
+					OutText("UE4のコンテンツブラウザでコピーしたアセットパスを入力してください。", OS_INFO);
+					//SetConsoleOutputCP(1252);
+					//SetConsoleCP(1252);
+					struct IMPORT_DATA_ATTR {
+						int isPaperTileSet = -1;	//-1=不明 0=不 1=正
+						bool exists = false;
+						bool isUEPath = false;		//UEパスか(/Gameからのパスになっているか)
+					};
+					while (inputAsset != "-1") {
+						//入力
+						string s;
+						getline(cin, s);
+						bool isAbsolutePath = false;
+						bool existsFile = false;
+						/*
+						想定される入力
+						UE4コピペ
+						PaperTileSet'/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet'
+						/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet
+						"D:\GE3A09\Unreal Projects\UE2D\Content\Assets\tilemap\tileset_field_TileSet.uasset"
+						D:\GE3A09\Unreal Projects\UE2D\Content\Assets\tilemap\tileset_field_TileSet.uasset
+						それ以外は対応しません　無理
+						*/
+						IMPORT_DATA_ATTR attr;
+						if (Like(inputAsset, "%/Game/%")) {
+							//UEパスのとき
+							OutText("読込形式: UE Path");
+							attr.isUEPath = true;
+							//アセットの形式を読みとる(未実装)
+							//attr.isPaperTileSet = ExtractImportData(UEDirectory + "\\")
+						}
+						else if(Like(inputAsset, "%:\\%.uasset%")){
+							//絶対パスのとき
+							OutText("読込形式: Absolute Path");
+
+							attr.isPaperTileSet = -1;	//タイルセットかは不明(未実装)
+							attr.isUEPath = false;		//UEPathではない
+							attr.exists = filesystem::exists(inputAsset);	//ファイルが存在するか
+
+						}
+
+						//if (attr.exists) {
+						//	if(attr.isUEPath)
+						//}
+
+
+						//そのパスが存在するか(なかったら警告)
+						if(filesystem::exists(linkPathJson["projectPath"] + "\\Content\\"))
+						//正常に入力したとき								PaperTileSet'/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet'	
+						//入力内容が絶対パスだったとき
+						  //そのパスは現在のプロジェクトか？(なければ警告)
+						  
+						//パスのうち、''で囲まれた部分だけ入力してきたとき
+						//入力したが、タイルセットではないパスだった場合(警告)
+						//
+						//cin.getline(inputAsset, sizeof(inputAsset));
+						u16string u16str;
+						string inStr;
+						//getline(cin, inStr);
+
+						typedef std::basic_ofstream<char16_t> u16ofstream;
+						//u16ofstream outfile("testtttst.txt", std::ios_base::app);
+						//outfile << u16str;
+						//outfile.close();
+						
+						ios_base::sync_with_stdio(false);
+						wcin.imbue(locale("en_US.UTF-8"));
+						wcout.imbue(locale("en_US.UTF-8"));
+
+						cout << s << endl;
+
+						//wofstream outfile("testtttst.txt");
+						ofstream outfile("testtttst.txt");
+						outfile << s;
+						outfile.close();
+
+
+						//cin >> inputAsset;
+						//cout << inputAsset << endl;
+					}
+					//ExtractTexture(inputAsset);
+					//OutText(sourcePath + " と " + to_string(linkPathData[sameFileNameIndexes[inch - '1']]["ue4"]) + "をリンクします。", OS_INFO);
+				}
+
+			}
+
+		}
+	}
+	
 	return true;
 }
 
@@ -182,14 +447,14 @@ void Parser::Parse(string _path, json _data)
 		output << "   LayerHeight=" << height << "\n";
 		output << "   AllocatedWidth=" << width << "\n";
 		output << "   AllocatedHeight=" << height << "\n";
-
 		//ここにマップ変換機構
 		for (int h = 0; h < height; h++) {
 			for (int w = 0; w < width; w++) {
 				int index = h * width + w;	//インデックス設定
 				unsigned int tiledValue = _data["layers"][layer]["data"][index];	//TILEDのデータ値
-				//最後の値のときのみ、空の場合も生成
+
 				//値が0のときは何もないのでスキップ
+				//(最後の値のときのみ、空の場合でも生成)
 				if (tiledValue != 0) {
 					//データ変換関数
 					string ueTileset = "";
@@ -212,18 +477,16 @@ void Parser::Parse(string _path, json _data)
 		}
 		output << "End Object\n\n";
 	}
-	json convJson;
-	convJson = {
-		{"height", _data["height"]},
-		{"width", _data["width"]},
-		{"orientation", _data["orientation"]},
-		{"tileheight", _data["tileheight"]},
-		{"tilewidth", _data["tilewidth"]},
-		{"version", _data["version"]}
-	};
-	ofstream outJson(outFile + ".json");
-	outJson << convJson;
-	outJson.close();
+	OutputJson(outFile + ".json",
+		{
+	{"height", _data["height"]},
+	{"width", _data["width"]},
+	{"orientation", _data["orientation"]},
+	{"tileheight", _data["tileheight"]},
+	{"tilewidth", _data["tilewidth"]},
+	{"version", _data["version"]}
+		}
+	);
 }
 
 bool Parser::End() {
@@ -239,6 +502,7 @@ void Parser::Result() {
 
 //ここの処理をかいておわり 多分そうでもないけど
 void Parser::ConvertData(unsigned int tiledValue, string* uePath, int* ueTileValue) {
+	json& linkData = linkPathJson["linkData"];
 	/*
 	Tiled Format -> UE4 Format
 	unsigned int -> singed int
@@ -251,20 +515,66 @@ void Parser::ConvertData(unsigned int tiledValue, string* uePath, int* ueTileVal
 
 	*/
 	int gid = tiledValue & (int)(pow(2, 29) - 1);	//29ビット目までとる
-	//int flipFlag = (tiledValue >> 29) & 0b111;		//29ビットシフトして3ビット取る(30-32)
+	try {
+		//タイルセットID(json内タイルセットリストのインデックス)をIDデカいほうから探索
+		for (int tilesetID = data["tilesets"].size() - 1; tilesetID >= 0; tilesetID--) {
+			//タイルセットリストに格納されたグローバルIDと比較、それよりも現在タイルの値が大きければUEパスとUEタイル値を格納
+			if (gid >= data["tilesets"][tilesetID]["firstgid"]) {
+				*uePath = linkData[useLinkDataIndexes[tilesetID]]["ue4"];
+				*ueTileValue = tiledValue - data["tilesets"][tilesetID]["firstgid"];
 
-	//unsigned int tmp = tiledValue;
-	for (int tilesetID = data["tilesets"].size() - 1; tilesetID >= 0; tilesetID--) {
-		if (gid >= data["tilesets"][tilesetID]["firstgid"]) {
-
-			//*ueTileValue = gid - data["tilesets"][tilesetID]["firstgid"];
-			*uePath = linkPathData[data["tilesets"][tilesetID]["source"]]["ue4"];
-			*ueTileValue = tiledValue - data["tilesets"][tilesetID]["firstgid"];
-
-			//cout << "CONVERT " << tiledValue << " -> " << *ueTileValue << endl;
-			break;
+				break;
+			}
 		}
 	}
+	catch (json::type_error &e) {
+		OutText("マップデータまたはリンクファイルに必要となるキーが存在しないか、不正な値が入っています。変換を中止します。", OS_ERROR);
+		return;
+	}
+}
+
+string Parser::GetStem(string path)
+{
+	string ret = filesystem::path(path).stem().string();
+	//cout << "ステムを取る：" << path << " -> " << ret << endl;
+	return ret;
+}
+
+char Parser::GetKey(string descr)
+{
+	std::cout << descr;
+	int inch = _getch();
+	if (isgraph(inch)) {
+		cout << (char)inch << endl;
+		return (char)inch;
+	}
+	else {
+		cout << "Invalid Input" << endl;
+	}
+	return 0x00;
+}
+
+bool Parser::InputBool(string descr)
+{
+	std::cout << descr << "[Y/N]:";
+	while (true) {
+		int inch = toupper(_getch());
+		if (In(inch, { 'Y','N' })) {
+			cout << (char)inch << endl;
+			return (inch == 'Y' ? true : false);
+			//if (inch == 'Y')return true;
+			//return false;
+		}
+	}
+	return false;
+}
+
+void Parser::OutputJson(string filePath, json content)
+{
+	if (((filesystem::path)(filePath)).extension() == ".json") OutText("JSON形式で出力されるファイルの拡張子が.jsonではありません。使用する際はご注意ください。", OS_WARNING);
+	ofstream out(filePath);
+	out << content.dump(2);
+	out.close();
 }
 
 void Parser::OutText(string str, OUTPUT_STATE outState) {
@@ -278,3 +588,88 @@ void Parser::OutText(string str, OUTPUT_STATE outState) {
 
 	cout << str << "\033[0m" << endl;
 }
+
+bool Parser::BreakNIsContinue(string warnStr)
+{
+	OutText(warnStr, OS_WARNING);
+	return InputBool("続行しますか？");
+}
+
+void Parser::PrintStrList(vector<string>* descrList, int startNum)
+{
+	for (int i = 0; i < descrList->size(); i++) {
+		OutText("  [" + to_string(i + startNum) + "] : " +
+			(*descrList)[i]
+		);
+	}
+}
+
+bool Parser::Like(string val, string search)
+{
+	//正規表現変換
+	string regexPattern;
+	for (char c : search) {
+		switch (c) {
+		case '%': // 任意の文字列に対応
+			regexPattern += ".*";
+			break;
+		case '_': // 任意の1文字に対応
+			regexPattern += ".";
+			break;
+		case '.': // '.'は正規表現で特殊文字なのでエスケープ
+		case '^':
+		case '$':
+		case '|':
+		case '(':
+		case ')':
+		case '[':
+		case ']':
+		case '*':
+		case '+':
+		case '?':
+		case '\\': // '\'もエスケープが必要
+			regexPattern += '\\';
+			[[fallthrough]];
+		default: // それ以外の文字
+			regexPattern += c;
+			break;
+		}
+	}
+
+	//正規表現オブジェクト作成(icaseで大文字小文字を無視)
+	std::regex re(regexPattern, std::regex::icase);
+
+	//判定
+	return std::regex_match(val, re);
+}
+
+string Parser::toBinary(unsigned int n)
+{
+	std::string r;
+	while (n != 0) {
+		r = (n % 2 == 0 ? "0" : "1") + r;
+		n /= 2;
+	}
+	return r;
+}
+
+string Parser::PGetCurrentDirectory()
+{
+	char dir[MAX_PATH];
+	GetCurrentDirectory(MAX_PATH, dir);
+	return dir;
+}
+
+/*
+TODO
+パスが見つからないときにエラー吐いて強制終了するバグ
+複数選択(非D&D時)
+
+issue
+同名のリンクデータが8つ以上あったとき、8以降のデータが表示されない(8と9にpageUp/Downを割り当ててるため)
+
+
+memo
+
+250108 LIKEを実装
+*/
