@@ -303,17 +303,7 @@ bool Parser::Read(string _path, json* _data)
 						if ((inch - '0') <= sameFileNameIndexes.size()) {
 							//リンク処理
 							OutText(sourcePath + " と " + to_string(linkData[sameFileNameIndexes[inch - '1']]["ue4"]) + "をリンクします。", OS_INFO);
-							json value;
-							value += json::object_t::value_type("tiled", sourcePath);
-							value += json::object_t::value_type("ue4", linkData[sameFileNameIndexes[inch - '1']]["ue4"]);
-							try {
-								linkData.push_back(value);
-								OutputJson(parentDir + "\\linkPath.json", linkPathJson);
-							}
-							catch (json::type_error e) {
-								OutText("保存時にエラーが発生しました(" + (string)e.what(), OS_ERROR);
-							}
-							break;
+							AddLinkData(sourcePath, linkData[sameFileNameIndexes[inch - '1']]["ue4"]);
 						}
 					}
 					//if (inch == '8') {
@@ -350,7 +340,7 @@ bool Parser::Read(string _path, json* _data)
 				}
 
 				string inputAsset = "";
-				vector<string> vstr;
+				string exprStr;
 				switch (in)
 				{
 				case '0':	//中止
@@ -365,10 +355,11 @@ bool Parser::Read(string _path, json* _data)
 					break;
 				case '2':	//エクスプローラ選択
 					//エクスプローラの設定
-					SelectFile(&vstr, STR_FILTER{ "uassetファイル", "uasset" }, linkPathJson["projectPath"]);
-					//最初はiniファイルのディレクトリを指定
+					//iniファイルのディレクトリを指定
+					SelectFile(&exprStr, STR_FILTER{ "uassetファイル", "uasset" }, linkPathJson["projectPath"]);
 					//バイナリからタイルセットかどうかを確認する(タイルセットじゃなかったら警告を入れる)
 					//リンクデータを追加する
+					AddLinkData(sourcePath, exprStr);
 
 					break;
 				case '3':	//パス入力
@@ -581,6 +572,23 @@ string Parser::GetStem(string path)
 	return ret;
 }
 
+void Parser::AddLinkData(string tiled_sourcePath, string ue4_path)
+{
+	json& linkData = linkPathJson["linkData"];
+	//リンク処理
+	OutText(tiled_sourcePath + " と " + ue4_path + "をリンクします。", OS_INFO);
+	json value;
+	value += json::object_t::value_type("tiled", tiled_sourcePath);
+	value += json::object_t::value_type("ue4", ue4_path);
+	try {
+		linkData.push_back(value);
+		OutputJson(parentDir + "\\linkPath２うお溢.json", linkPathJson);
+	}
+	catch (json::type_error e) {
+		OutText("保存時にエラーが発生しました(" + (string)e.what(), OS_ERROR);
+	}
+}
+
 char Parser::GetKey(string descr)
 {
 	std::cout << descr;
@@ -614,7 +622,7 @@ void Parser::OutputJson(string filePath, json content)
 {
 	if (((filesystem::path)(filePath)).extension() == ".json") OutText("JSON形式で出力されるファイルの拡張子が.jsonではありません。使用する際はご注意ください。", OS_WARNING);
 	ofstream out(filePath);
-	out << content.dump(2);
+	out << char8_t(content.dump(2));
 	out.close();
 }
 

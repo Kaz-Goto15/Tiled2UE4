@@ -64,7 +64,8 @@ private:
 
 	string ExtractTexture(string filePath_tileset);
 	string ExtractImportData(string filePath_);
-
+	
+	void AddLinkData(string tiled_sourcePath, string ue4_path);
 	// ===================== 汎用入出力関数 =====================
 	//キー入力(isgraph)
 	char GetKey(string descr = "");
