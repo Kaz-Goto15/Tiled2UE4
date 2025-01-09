@@ -45,7 +45,12 @@ private:
 		string descr = "";
 		string ext = "*";
 	};
-	void SelectFile(vector<string>* paths, string overview, string ext, string dir = "", bool enAllFile = true);								//読込-ウィンドウ選択
+	void SelectFile(vector<string>* storePaths, vector<STR_FILTER> filters, string dir = "", bool enAllFile = true);		//複数選択、複数フィルタ
+	void SelectFile(vector<string>* storePaths, STR_FILTER filter, string dir = "", bool enAllFile = true);				//複数選択、単一フィルタ
+	void SelectFile(string* storePath, vector<STR_FILTER> filters, string dir = "", bool enAllFile = true);											//単一選択、複数フィルタ
+	void SelectFile(string* storePath, STR_FILTER filter, string dir = "", bool enAllFile = true);													//単一選択、単一フィルタ
+	vector<string> SelectFile_proc(vector<STR_FILTER> filters, string dir, bool enAllFile, bool isSingleFile);	//処理
+
 	bool Read(string _path, json* _data);								//マップデータを読み込みデータを格納する
 	void Parse(string _path, json data);								//変換
 

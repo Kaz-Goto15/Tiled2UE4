@@ -98,7 +98,7 @@ bool Parser::StoreParseFile(int argc, char* argv[], vector<string>* paths)
 	//引数がない場合(argcが1以下)
 	else {
 		OutText("変換するファイルを選択してください。", OS_INFO);
-		SelectFile(paths, "マップデータ", "json", PGetCurrentDirectory());
+		SelectFile(paths, STR_FILTER{ "マップデータ", "json" }, PGetCurrentDirectory());
 		if (paths->size() == 0) {
 			//OutText("ファイルが選択されませんでした。終了します。", OS_INFO);
 			return false;
@@ -113,10 +113,42 @@ bool Parser::StoreParseFile(int argc, char* argv[], vector<string>* paths)
 	return true;
 }
 
-void Parser::SelectFile(vector<string>* paths, string overview, string ext, string dir, bool enAllFile)
+
+void Parser::SelectFile(vector<string>* storePaths, vector<STR_FILTER> filters, string dir, bool enAllFile)
+{
+	*storePaths = SelectFile_proc(filters, dir, enAllFile, false);
+}
+
+void Parser::SelectFile(vector<string>* storePaths, STR_FILTER filter, string dir, bool enAllFile)
+{
+	vector<STR_FILTER> inFilter;
+	inFilter.push_back(filter);
+
+	*storePaths = SelectFile_proc(inFilter, dir, enAllFile, false);
+}
+
+void Parser::SelectFile(string* storePath, vector<STR_FILTER> filters, string dir, bool enAllFile)
+{
+	vector<string> retStr = SelectFile_proc(filters, dir, enAllFile, true);
+
+	if (retStr.size() > 0)*storePath = retStr[0];
+}
+
+void Parser::SelectFile(string* storePath, STR_FILTER filter, string dir, bool enAllFile)
+{
+	vector<STR_FILTER> inFilter;
+	inFilter.push_back(filter);
+
+	vector<string> retStr = SelectFile_proc(inFilter, dir, enAllFile, true);
+
+	if (retStr.size() > 0)*storePath = retStr[0];
+}
+
+vector<string> Parser::SelectFile_proc(vector<STR_FILTER> filters, string dir, bool enAllFile, bool isSingleFile)
 {
 	string currentDir = PGetCurrentDirectory();
 
+	//指定ディレクトリが空白ではない場合のみカレントディレクトリを更新
 	if (dir != "") {
 		SetCurrentDirectory(dir.c_str());
 	}
@@ -124,9 +156,6 @@ void Parser::SelectFile(vector<string>* paths, string overview, string ext, stri
 	char fileName[MAX_PATH] = "";  //ファイル名を入れる変数
 
 	vector<char> filterArr;
-	string strFilter = overview + "(*." + ext + ")\0*." + ext + "\0";
-	string strFilterAll = "すべてのファイル(*.*)\0*.*\0\0";
-
 
 	auto AddFilter = [=](vector<char>* flt, STR_FILTER& addFlt) {
 		string overview = addFlt.descr + "(*." + addFlt.ext + ")";
@@ -136,27 +165,22 @@ void Parser::SelectFile(vector<string>* paths, string overview, string ext, stri
 		flt->push_back('\0');
 		flt->insert(flt->end(), ext.begin(), ext.end());
 		flt->push_back('\0');
-	};
+		};
 
 	//指定フィルタ追加
-	STR_FILTER filter;
-	filter.descr = overview;
-	filter.ext = ext;
-	STR_FILTER gtes;
-	gtes = { "aaa","Bbbb" };
-	//全ファイルフィルタ追加
-	STR_FILTER filterAll;
-	filterAll.descr = "すべてのファイル";
-	filterAll.ext = "*";
+	for (auto& flt : filters) {
+		AddFilter(&filterArr, flt);
+	}
 
-	AddFilter(&filterArr, filter);
-	AddFilter(&filterArr, gtes);
-	AddFilter(&filterArr, filterAll);
+	//全ファイルフィルタの適用関連
+	if (enAllFile) {
+		//全ファイルフィルタ追加
+		STR_FILTER filterAll = { "すべてのファイル" , "*" };
+		AddFilter(&filterArr, filterAll);
+	}
 
 	// フィルタ文字列全体を NULL 終端する
 	filterArr.push_back('\0');
-
-	if (enAllFile) strFilter += strFilterAll;
 
 	//「ファイルを開く」ダイアログの設定
 	OPENFILENAME ofn;                         	//名前をつけて保存ダイアログの設定用構造体
@@ -165,22 +189,40 @@ void Parser::SelectFile(vector<string>* paths, string overview, string ext, stri
 	ofn.lpstrFilter = filterArr.data();
 	ofn.lpstrFile = fileName;               	//ファイル名
 	ofn.nMaxFile = MAX_PATH;               	//パスの最大文字数
-	ofn.Flags = OFN_ALLOWMULTISELECT;	//これで複数選択ができそう
-	//ofn.Flags = OFN_OVERWRITEPROMPT;   		//フラグ（同名ファイルが存在したら上書き確認）
+	if (!isSingleFile)	ofn.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER;	//これで複数選択ができそう
 	ofn.lpstrDefExt = "json";                  	//デフォルト拡張子
-	
+
 	//「ファイルを開く」ダイアログ
 	BOOL selFile;
 	selFile = GetOpenFileNameA(&ofn);
 
 	//キャンセルしたら中断
-	if (selFile == FALSE) return;
+	if (selFile == FALSE) return vector<string>();
+
+	// 複数ファイルが選択された場合
+	std::vector<std::string> selectedFiles;
+	std::string directory(fileName);
+	TCHAR* ptr = fileName + directory.length() + 1;
+
+	if (*ptr == '\0')	selectedFiles.push_back(directory);	//単一ファイルの場合
+	else {
+		//複数ファイルの場合
+		while (*ptr) {
+			selectedFiles.push_back(directory + "\\" + std::string(ptr));
+			ptr += strlen(ptr) + 1;
+		}
+	}
+
+	// 選択されたファイルを出力
+	for (const auto& file : selectedFiles) std::cout << "Selected File: " << file << std::endl;
+
+	//カレントディレクトリをもとにもどす
+	SetCurrentDirectory(currentDir.c_str());
 
 	//複数取る方法わからんので今は1個だけプッシュ
-	paths->push_back(fileName);
+	//260文字超えて失敗したときの処理書いてないけど全部返す
+	return selectedFiles;
 
-
-	SetCurrentDirectory(currentDir.c_str());
 }
 
 bool Parser::Read(string _path, json* _data)
@@ -324,7 +366,7 @@ bool Parser::Read(string _path, json* _data)
 					break;
 				case '2':	//エクスプローラ選択
 					//エクスプローラの設定
-					SelectFile(&vstr,"uassetファイル", "uasset", linkPathJson["projectPath"]);
+					SelectFile(&vstr, STR_FILTER{ "uassetファイル", "uasset" }, linkPathJson["projectPath"]);
 					//最初はiniファイルのディレクトリを指定
 					//バイナリからタイルセットかどうかを確認する(タイルセットじゃなかったら警告を入れる)
 					//リンクデータを追加する
