@@ -147,11 +147,9 @@ void Parser::SelectFile(string* storePath, STR_FILTER filter, string dir, bool e
 vector<string> Parser::SelectFile_proc(vector<STR_FILTER> filters, string dir, bool enAllFile, bool isSingleFile)
 {
 	string currentDir = PGetCurrentDirectory();
-
-	//指定ディレクトリが空白ではない場合のみカレントディレクトリを更新
-	if (dir != "") {
-		SetCurrentDirectory(dir.c_str());
-	}
+	
+	//指定ディレクトリが存在しないとき、カレントディレクトリになるよう指定
+	if (!filesystem::exists(dir)) 	dir = currentDir;
 
 	char fileName[MAX_PATH] = "";  //ファイル名を入れる変数
 
@@ -191,11 +189,12 @@ vector<string> Parser::SelectFile_proc(vector<STR_FILTER> filters, string dir, b
 	ofn.nMaxFile = MAX_PATH;               	//パスの最大文字数
 	if (!isSingleFile)	ofn.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER;	//これで複数選択ができそう
 	ofn.lpstrDefExt = "json";                  	//デフォルト拡張子
-
+	ofn.lpstrInitialDir = dir.c_str();
 	//「ファイルを開く」ダイアログ
 	BOOL selFile;
 	selFile = GetOpenFileNameA(&ofn);
 
+	cout << ofn.lpstrInitialDir << endl;
 	//キャンセルしたら中断
 	if (selFile == FALSE) return vector<string>();
 
