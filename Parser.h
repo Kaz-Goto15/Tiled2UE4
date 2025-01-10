@@ -2,29 +2,31 @@
 
 #include "./Include/json.hpp"
 #include <iostream>
-#include <fstream>
-#include <filesystem>
-#include <string>
-#include <vector>
 
+#include <filesystem>
+#include <vector>
+#include <tchar.h>
 #include <bitset>
 #include <sstream>
 #include <Windows.h>
 #include <conio.h>	//キー押す要因
 #include <locale>
+#include <string>
 using std::bitset;
 
 using std::vector;
 using json = nlohmann::json;
 using std::string;
+using std::wstring;
 
+using namespace std;
 class Parser
 {
 public:
 	//コンストラクタ
 	Parser();
 	//メイン処理機構
-	bool Process(int argc, char* argv[]);
+	bool Process(int argc, wchar_t* argv[]);
 
 private:
 	string parentDir;
@@ -35,37 +37,38 @@ private:
 
 	//初期化
 	string outDir;
-	bool Init(char* exePath);
+	bool Init(wchar_t* exePath);
 
 	//変換データ系
-	vector<string> parsePaths;	//変換データのパスを格納する配列
-	bool StoreParseFile(int argc, char* argv[], vector<string>* paths);	//読込-基本
+	vector<wstring> parsePaths;	//変換データのパスを格納する配列
+	bool StoreParseFile(int argc, wchar_t* argv[], vector<wstring>* paths);	//読込-基本
 
 	struct STR_FILTER {
 		string descr = "";
 		string ext = "*";
 	};
-	void SelectFile(vector<string>* storePaths, vector<STR_FILTER> filters, string dir = "", bool enAllFile = true);		//複数選択、複数フィルタ
-	void SelectFile(vector<string>* storePaths, STR_FILTER filter, string dir = "", bool enAllFile = true);				//複数選択、単一フィルタ
-	void SelectFile(string* storePath, vector<STR_FILTER> filters, string dir = "", bool enAllFile = true);											//単一選択、複数フィルタ
-	void SelectFile(string* storePath, STR_FILTER filter, string dir = "", bool enAllFile = true);													//単一選択、単一フィルタ
-	vector<string> SelectFile_proc(vector<STR_FILTER> filters, string dir, bool enAllFile, bool isSingleFile);	//処理
+	void SelectFile(vector<wstring>* storePaths, vector<STR_FILTER> filters, wstring dir = L"", bool enAllFile = true);		//複数選択、複数フィルタ
+	void SelectFile(vector<wstring>* storePaths, STR_FILTER filter, wstring dir = L"", bool enAllFile = true);				//複数選択、単一フィルタ
+	void SelectFile(wstring* storePath, vector<STR_FILTER> filters, wstring dir = L"", bool enAllFile = true);											//単一選択、複数フィルタ
+	void SelectFile(wstring* storePath, STR_FILTER filter, wstring dir = L"", bool enAllFile = true);													//単一選択、単一フィルタ
+	vector<wstring> SelectFile_proc(vector<STR_FILTER> filters, wstring dir, bool enAllFile, bool isSingleFile);	//処理
 
-	bool Read(string _path, json* _data);								//マップデータを読み込みデータを格納する
-	void Parse(string _path, json data);								//変換
+	bool Read(wstring _path, json* _data);								//マップデータを読み込みデータを格納する
+	void Parse(wstring _path, json data);								//変換
 
 	bool End();
 	void Result();
 	void ConvertData(unsigned int tiledValue, string* uePath, int* ueTileValue);
 
 
-	string GetStem(string path);
+	wstring GetStem(wstring path);
 
 
 	string ExtractTexture(string filePath_tileset);
 	string ExtractImportData(string filePath_);
-	
-	void AddLinkData(string tiled_sourcePath, string ue4_path);
+
+	void AddLinkDataA(string tiled_sourcePath, string ue4_path);
+	void AddLinkDataW(wstring tiled_sourcePath, wstring ue4_path);
 	// ===================== 汎用入出力関数 =====================
 	//キー入力(isgraph)
 	char GetKey(string descr = "");
@@ -84,7 +87,8 @@ private:
 		OS_ERROR
 	};
 	//状態付き出力
-	void OutText(string str, OUTPUT_STATE outState = OS_NONE);
+	//void OutText(string str, OUTPUT_STATE outState = OS_NONE);
+	void OutText(wstring wstr, OUTPUT_STATE outState = OS_NONE);
 
 	//処理中断・警告
 	bool BreakNIsContinue(string warnStr);
@@ -127,6 +131,7 @@ private:
 	string toBinary(unsigned int n);
 
 	//カレントディレクトリの取得
-	string PGetCurrentDirectory();
+	string PGetCurrentDirectoryA();
+	wstring PGetCurrentDirectoryW();
 };
 
