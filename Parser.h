@@ -29,14 +29,14 @@ public:
 	bool Process(int argc, wchar_t* argv[]);
 
 private:
-	string parentDir;
+	wstring parentDir;
 	json linkPathJson;
 
 	json data;	//読込jsonデータの格納変数
 	vector<int> useLinkDataIndexes;
 
 	//初期化
-	string outDir;
+	wstring outDir;
 	bool Init(wchar_t* exePath);
 
 	//変換データ系
@@ -58,7 +58,7 @@ private:
 
 	bool End();
 	void Result();
-	void ConvertData(unsigned int tiledValue, string* uePath, int* ueTileValue);
+	void ConvertData(unsigned int tiledValue, wstring* uePath, int* ueTileValue);
 
 
 	wstring GetStem(wstring path);
@@ -67,17 +67,19 @@ private:
 	string ExtractTexture(string filePath_tileset);
 	string ExtractImportData(string filePath_);
 
-	void AddLinkDataA(string tiled_sourcePath, string ue4_path);
 	void AddLinkDataW(wstring tiled_sourcePath, wstring ue4_path);
+
+	//変換関数
+	void StoreWStr(wstring* wstr, json* j);
 	// ===================== 汎用入出力関数 =====================
 	//キー入力(isgraph)
-	char GetKey(string descr = "");
+	char GetKey(wstring descr = L"");
 
 	//Y/N入力
-	bool InputBool(string descr = "");
+	bool InputBool(wstring descr = L"");
 
 	//JSON出力
-	void OutputJson(string filePath, json content);
+	void OutputJson(wstring filePath, json content);
 
 	// ===================== 標準入出力関数 =====================
 	enum OUTPUT_STATE {
@@ -91,13 +93,13 @@ private:
 	void OutText(wstring wstr, OUTPUT_STATE outState = OS_NONE);
 
 	//処理中断・警告
-	bool BreakNIsContinue(string warnStr);
+	bool BreakNIsContinue(wstring warnStr);
 
 	//改行
-	void Br() { std::cout << std::endl; }
+	void Br() { std::wcout << std::endl; }
 
 	//string配列を全出力
-	void PrintStrList(vector<string>* descrList, int startNum = 0);
+	void PrintStrList(vector<wstring>* descrList, int startNum = 0);
 	// ===================== 汎用関数 =====================
 
 	//値が範囲内か

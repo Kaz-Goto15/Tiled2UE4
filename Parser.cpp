@@ -1,4 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 #include "Parser.h"
 
 #include <iostream>
@@ -9,6 +10,8 @@
 
 //#include "Unicode.h"
 #include <fstream>
+#include <codecvt>
+
 using namespace std;
 
 Parser::Parser()
@@ -18,11 +21,11 @@ Parser::Parser()
 bool Parser::Init(wchar_t* exePath) {
 	//実行ファイルのディレクトリを取得
 	std::filesystem::path path = exePath;
-	parentDir = path.parent_path().string();
-	outDir = parentDir + "\\output\\";
+	parentDir = path.parent_path().wstring();
+	outDir = parentDir + L"\\output\\";
 
 	//TiledとUE4のリンクファイルを読込
-	string lpPath = parentDir + "\\linkPath.json";
+	wstring lpPath = parentDir + L"\\linkPath.json";
 	if (filesystem::exists(lpPath)) {
 		std::ifstream lp(lpPath);
 
@@ -30,19 +33,19 @@ bool Parser::Init(wchar_t* exePath) {
 			linkPathJson = json::parse(lp);
 		}
 		catch (json::parse_error e) {
-			OutText("リンクパスファイルの読込時に問題が発生しました：" + (string)e.what(), OS_ERROR);
+			OutText(L"リンクパスファイルの読込時に問題が発生しました：" + (wchar_t)e.what(), OS_ERROR);
 			return false;
 		}
 	}
 	else {
-		OutText("リンクパスファイルが見つかりません。", OS_ERROR);
+		OutText(L"リンクパスファイルが見つかりません。", OS_ERROR);
 		return 0;
 	}
 
 	if (!filesystem::is_directory(outDir)) {
-		OutText("出力フォルダがありません。ディレクトリを自動追加します。", OS_WARNING);
+		OutText(L"出力フォルダがありません。ディレクトリを自動追加します。", OS_WARNING);
 		if (!filesystem::create_directory(outDir)) {
-			OutText("出力フォルダの作成に失敗しました。管理者権限が必要な場所で実行しているか、容量が足りない可能性があります。", OS_ERROR);
+			OutText(L"出力フォルダの作成に失敗しました。管理者権限が必要な場所で実行しているか、容量が足りない可能性があります。", OS_ERROR);
 			return 0;
 		};
 	}
@@ -56,14 +59,14 @@ bool Parser::Process(int argc, wchar_t* argv[])
 		OutText(L"パーサのセットアップが完了", OS_INFO);
 	}
 	else {
-		OutText("セットアップ時に問題が発生しました。処理を終了します。", OS_NONE);
+		OutText(L"セットアップ時に問題が発生しました。処理を終了します。", OS_NONE);
 		End();
 		return false;
 	}
 
 	//ファイル選択
 	if (!StoreParseFile(argc, argv, &parsePaths)) {
-		OutText("ファイルが選択されませんでした。処理を終了します。", OS_NONE);
+		OutText(L"ファイルが選択されませんでした。処理を終了します。", OS_NONE);
 		End();
 		return false;
 	}
@@ -90,24 +93,24 @@ bool Parser::StoreParseFile(int argc, wchar_t* argv[], vector<wstring>* paths)
 {
 	// 引数が1つ以上ある場合（0番目は実行ファイル自身のパス）
 	if (argc > 1) {
-		OutText("D&Dされたファイルを読み込みます。", OS_INFO);
-		OutText("読込データ：");
+		OutText(L"D&Dされたファイルを読み込みます。", OS_INFO);
+		OutText(L"読込データ：");
 		for (int i = 1; i < argc; i++) {
 			paths->push_back(argv[i]);
 			OutText(L"  [" + to_wstring(i - 1) + L"] : " + argv[i]);
-			cout << "うお" << endl;
+			wcout << L"うお" << endl;
 		}
 	}
 	//引数がない場合(argcが1以下)
 	else {
-		OutText("変換するファイルを選択してください。", OS_INFO);
+		OutText(L"変換するファイルを選択してください。", OS_INFO);
 		SelectFile(paths, STR_FILTER{ "マップデータ", "json" }, PGetCurrentDirectoryW());
 		if (paths->size() == 0) {
-			//OutText("ファイルが選択されませんでした。終了します。", OS_INFO);
+			//OutText(L"ファイルが選択されませんでした。終了します。", OS_INFO);
 			return false;
 		}
 		else {
-			OutText("読込データ：");
+			OutText(L"読込データ：");
 			for (int i = 0; i < paths->size(); i++) {
 				OutText(L"  [" + to_wstring(i) + L"] : " + (*paths)[i]);
 			}
@@ -184,18 +187,43 @@ vector<wstring> Parser::SelectFile_proc(vector<STR_FILTER> filters, wstring dir,
 	filterArr.push_back('\0');
 
 	//「ファイルを開く」ダイアログの設定
-	OPENFILENAME ofn;                         	//名前をつけて保存ダイアログの設定用構造体
-	ZeroMemory(&ofn, sizeof(ofn));            	//構造体初期化
-	ofn.lStructSize = sizeof(OPENFILENAME);   	//構造体のサイズ
-	ofn.lpstrFilter = (LPCWSTR)filterArr.data();
-	ofn.lpstrFile = (LPWSTR)fileName;               	//ファイル名
-	ofn.nMaxFile = MAX_PATH;               	//パスの最大文字数
-	if (!isSingleFile)	ofn.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER;	//これで複数選択ができそう
-	ofn.lpstrDefExt = L"json";                  	//デフォルト拡張子
-	ofn.lpstrInitialDir = (LPCWSTR)dir.c_str();
+	OPENFILENAMEW ofnw;
+	ZeroMemory(&ofnw, sizeof(ofnw));            	//構造体初期化
+	ofnw.lStructSize = sizeof(OPENFILENAMEW);   	//構造体のサイズ
+
+	// 終端文字を考慮してデータをコピー
+	std::string utf8Str(filterArr.begin(), filterArr.end());
+	// UTF-8 から UTF-16 に変換
+	int wideSize = MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, nullptr, 0);
+	std::wstring filterWStr(wideSize, 0);
+	MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, &filterWStr[0], wideSize);
+
+	// 最後の終端文字を削除
+	filterWStr.pop_back();
+
+	//wstring filterWStr;
+	ofnw.lpstrFilter = filterWStr.c_str();
+	ofnw.lpstrFile = fileName;               	//ファイル名
+	ofnw.nMaxFile = MAX_PATH;               	//パスの最大文字数
+	if (!isSingleFile)	ofnw.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER;	//これで複数選択ができそう
+	ofnw.lpstrDefExt = L"json";                  	//デフォルト拡張子
+	ofnw.lpstrInitialDir = dir.c_str();
 	//「ファイルを開く」ダイアログ
 	BOOL selFile;
-	selFile = GetOpenFileNameW(&ofn);
+	selFile = GetOpenFileNameW(&ofnw);
+
+	//OPENFILENAME ofn;                         	//名前をつけて保存ダイアログの設定用構造体
+	//ZeroMemory(&ofn, sizeof(ofn));            	//構造体初期化
+	//ofn.lStructSize = sizeof(OPENFILENAME);   	//構造体のサイズ
+	//ofn.lpstrFilter = (LPCWSTR)filterArr.data();
+	//ofn.lpstrFile = (LPWSTR)fileName;               	//ファイル名
+	//ofn.nMaxFile = MAX_PATH;               	//パスの最大文字数
+	//if (!isSingleFile)	ofn.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER;	//これで複数選択ができそう
+	//ofn.lpstrDefExt = L"json";                  	//デフォルト拡張子
+	//ofn.lpstrInitialDir = (LPCWSTR)dir.c_str();
+	////「ファイルを開く」ダイアログ
+	//BOOL selFile;
+	//selFile = GetOpenFileNameW(&ofn);
 
 	//キャンセルしたら中断
 	if (selFile == FALSE) return vector<wstring>();
@@ -247,7 +275,7 @@ bool Parser::Read(wstring _path, json* _data)
 		std::ifstream f(_path);
 		try { *_data = json::parse(f); }
 		catch (json::parse_error e) {
-			OutText("マップデータの読込に失敗しました：" + (string)(e.what()), OS_ERROR);
+			OutText(L"マップデータの読込に失敗しました：" + (wchar_t)(e.what()), OS_ERROR);
 			return false;
 		}
 
@@ -257,12 +285,14 @@ bool Parser::Read(wstring _path, json* _data)
 	bool isLinked = false;
 	//使用したタイルセットがUEパスと紐付けられているか
 	for (json& source : (*_data)["tilesets"]) {
-		wstring sourcePath = source["source"];
+		wstring sourcePath;
+		StoreWStr(&sourcePath, &source["source"]);
 		isLinked = false;	//一旦リンクされてない判定にする
 
 		for (int index = 0; index < linkData.size(); index++) {
-			wstring linkPath = linkData[index]["tiled"];
-			
+			wstring linkPath;
+
+			StoreWStr(&linkPath, &linkData[index]["tiled"]);
 			if (sourcePath == linkPath) {
 				//存在した場合
 				useLinkDataIndexes.push_back(index);	//json内の使用タイルセットインデックス(0から順にループしているためpush_backでOK)とlinkPathのインデックスを紐付け
@@ -278,34 +308,41 @@ bool Parser::Read(wstring _path, json* _data)
 			//まずは使用タイルセットのファイル名と同じファイル名がリンクファイルに登録されているか判定
 			wstring sourceStem = GetStem(sourcePath);
 			for (int index = 0; index < linkData.size(); index++) {
-				wstring linkPath = linkData[index]["tiled"];
+				wstring linkPath;
+				StoreWStr(&linkPath, &linkData[index]["tiled"]);
 				if (GetStem(linkPath) == sourceStem) {
 					sameFileNameIndexes.push_back(index);
 				}
 			}
 			//あった場合、UEのパスと表示する
 			if (sameFileNameIndexes.size() > 0) {
-				OutText("リンクファイルからパスのみが異なる同名のリンクデータが見つかりました。同じUEアセットをリンクする場合、対応する番号を入力してください。\n", OS_INFO);
-				OutText("  [" + to_string(0) + "] : 選択しない");
+				OutText(L"リンクファイルからパスのみが異なる同名のリンクデータが見つかりました。同じUEアセットをリンクする場合、対応する番号を入力してください。\n", OS_INFO);
+				OutText(L"  [" + to_wstring(0) + L"] : 選択しない");
+				
 				for (int i = 0; i < sameFileNameIndexes.size(); i++) {
 					//if (i > 6) {
 					//	pages++;		//8以上の重複ファイルに対応するにはここらへんをいじる
 					//}
-					OutText("  [" + to_string(i+1) + "] : " + 
-						to_string(linkData[sameFileNameIndexes[i]]["tiled"]) + " <-> " +
-						to_string(linkData[sameFileNameIndexes[i]]["ue4"])
+					wstring tiledPathW, ue4PathW;
+					StoreWStr(&tiledPathW, &linkData[sameFileNameIndexes[i]]["tiled"]);
+					StoreWStr(&ue4PathW, &linkData[sameFileNameIndexes[i]]["ue4"]);
+					OutText(L"  [" + to_wstring(i+1) + L"] : " + 
+						tiledPathW + L" <-> " +
+						ue4PathW
 					);
 				}
 				char inch = 0x00;
 				while (inch < '0' || inch > '9') {
-					inch = GetKey("番号を入力：");
+					inch = GetKey(L"番号を入力：");
 					if (inch == '0')break;
 					if (inch >= '1' && inch <= '7') {
 
 						//番号内ならば処理する、番号外ならもう一回
 						if ((inch - '0') <= sameFileNameIndexes.size()) {
 							//リンク処理
-							wstring ue4_path = linkData[sameFileNameIndexes[inch - '1']]["ue4"];
+							wstring ue4_path;
+							StoreWStr(&ue4_path, &linkData[sameFileNameIndexes[inch - '1']]["ue4"]);
+
 							OutText(sourcePath + L" と " + ue4_path + L"をリンクします。", OS_INFO);
 							AddLinkDataW(sourcePath, linkData[sameFileNameIndexes[inch - '1']]["ue4"]);
 						}
@@ -321,13 +358,14 @@ bool Parser::Read(wstring _path, json* _data)
 				}
 			}
 			//ない場合、ほかの処理を選択させる
-
-			OutText("未リンクのタイルセット " + to_string(source["source"]) + " に対する処理を選択してください。", OS_INFO);
-			vector<string> noLinkedProcStrArr = {
-				"読込処理を中止",
-				"リンク済リストから選択してリンク",
-				"エクスプローラからuassetファイルを選択してリンク",
-				"UE4内でコピペしたアセットパスを直接記入してリンク"
+			wstring wSrc;
+			StoreWStr(&wSrc, &source["source"]);
+			OutText(L"未リンクのタイルセット " + wSrc + L" に対する処理を選択してください。", OS_INFO);
+			vector<wstring> noLinkedProcStrArr = {
+				L"読込処理を中止",
+				L"リンク済リストから選択してリンク",
+				L"エクスプローラからuassetファイルを選択してリンク",
+				L"UE4内でコピペしたアセットパスを直接記入してリンク"
 			};
 			PrintStrList(&noLinkedProcStrArr);
 			bool endFlag = false;
@@ -335,7 +373,7 @@ bool Parser::Read(wstring _path, json* _data)
 			while (!endFlag) {
 				char in;
 				while (true) {
-					in = GetKey("  処理番号を入力:");
+					in = GetKey(L"  処理番号を入力:");
 
 					if (in < '0' || (in-'0') >= noLinkedProcStrArr.size()) {
 						//cout << "無効な処理番号です。" << endl;
@@ -344,30 +382,37 @@ bool Parser::Read(wstring _path, json* _data)
 				}
 
 				string inputAsset = "";
-				wstring exprStr;
+				wstring linkedWStr = L"";
+				wstring exprWStr;
+				u16string u16str;
+				wstring pjPath;
 				switch (in)
 				{
 				case '0':	//中止
-					OutText("このマップデータの読込を中止しました。", OS_INFO);
+					OutText(L"このマップデータの読込を中止しました。", OS_INFO);
 					return false;
 					break;
 				case '1':	//リンク済リストから選択
-					OutText("以下のリストにある場合、左のインデックスを入力してください。");
+					OutText(L"以下のリストにある場合、左のインデックスを入力してください。");
 					for (int index = 0; index < linkData.size(); index++) {
-						OutText(index + " -> " + to_string(linkData[index]["ue4"]), OS_NONE);
+
+						StoreWStr(&linkedWStr, &linkData[index]["ue4"]);
+
+						OutText(index + L" -> " + linkedWStr, OS_NONE);
 					}
 					break;
 				case '2':	//エクスプローラ選択
 					//エクスプローラの設定
 					//iniファイルのディレクトリを指定
-					SelectFile(&exprStr, STR_FILTER{ "uassetファイル", "uasset" }, linkPathJson["projectPath"]);
+					StoreWStr(&pjPath, &linkPathJson["projectPath"]);
+					SelectFile(&exprWStr, STR_FILTER{ "uassetファイル", "uasset" }, pjPath);
 					//バイナリからタイルセットかどうかを確認する(タイルセットじゃなかったら警告を入れる)
 					//リンクデータを追加する
-					AddLinkDataW(sourcePath, exprStr);
+					AddLinkDataW(sourcePath, exprWStr);
 
 					break;
 				case '3':	//パス入力
-					OutText("UE4のコンテンツブラウザでコピーしたアセットパスを入力してください。", OS_INFO);
+					OutText(L"UE4のコンテンツブラウザでコピーしたアセットパスを入力してください。", OS_INFO);
 					//SetConsoleOutputCP(1252);
 					//SetConsoleCP(1252);
 					struct IMPORT_DATA_ATTR {
@@ -377,8 +422,8 @@ bool Parser::Read(wstring _path, json* _data)
 					};
 					while (inputAsset != "-1") {
 						//入力
-						string s;
-						getline(cin, s);
+						wstring s;
+						getline(wcin, s);
 						bool isAbsolutePath = false;
 						bool existsFile = false;
 						/*
@@ -393,14 +438,14 @@ bool Parser::Read(wstring _path, json* _data)
 						IMPORT_DATA_ATTR attr;
 						if (Like(inputAsset, "%/Game/%")) {
 							//UEパスのとき
-							OutText("読込形式: UE Path");
+							OutText(L"読込形式: UE Path");
 							attr.isUEPath = true;
 							//アセットの形式を読みとる(未実装)
 							//attr.isPaperTileSet = ExtractImportData(UEDirectory + "\\")
 						}
 						else if(Like(inputAsset, "%:\\%.uasset%")){
 							//絶対パスのとき
-							OutText("読込形式: Absolute Path");
+							OutText(L"読込形式: Absolute Path");
 
 							attr.isPaperTileSet = -1;	//タイルセットかは不明(未実装)
 							attr.isUEPath = false;		//UEPathではない
@@ -436,10 +481,10 @@ bool Parser::Read(wstring _path, json* _data)
 						wcin.imbue(locale("en_US.UTF-8"));
 						wcout.imbue(locale("en_US.UTF-8"));
 
-						cout << s << endl;
+						wcout << s << endl;
 
 						//wofstream outfile("testtttst.txt");
-						ofstream outfile("testtttst.txt");
+						wofstream outfile(L"testtttst.txt");
 						outfile << s;
 						outfile.close();
 
@@ -448,7 +493,7 @@ bool Parser::Read(wstring _path, json* _data)
 						//cout << inputAsset << endl;
 					}
 					//ExtractTexture(inputAsset);
-					//OutText(sourcePath + " と " + to_string(linkPathData[sameFileNameIndexes[inch - '1']]["ue4"]) + "をリンクします。", OS_INFO);
+					//OutText(sourcePath + " と " + to_wstring(linkPathData[sameFileNameIndexes[inch - '1']]["ue4"]) + "をリンクします。", OS_INFO);
 				}
 
 			}
@@ -465,24 +510,28 @@ void Parser::Parse(wstring _path, json _data)
 	int height = _data["height"];
 	int width = _data["width"];
 
-	string outFile = outDir + filesystem::path(_path).stem().string();
-	if (filesystem::exists(outFile + "_output.txt") || filesystem::exists(outFile + ".json")) {
-		OutText("出力フォルダ内に選択したファイルと同じ名前のファイルが存在します。ナンバリングを行います。", OS_WARNING);
+	//JSONのビルドエラーに対抗すべく我々はアマゾンの奥地へと向かった
+
+	wstring outFile = outDir + filesystem::path(_path).stem().wstring();
+	if (filesystem::exists(outFile + L"_output.txt") || filesystem::exists(outFile + L".json")) {
+		OutText(L"出力フォルダ内に選択したファイルと同じ名前のファイルが存在します。ナンバリングを行います。", OS_WARNING);
 		time_t now = time(nullptr);
 		auto nowM = localtime(&now);
-		ostringstream oss;
-		oss << put_time(localtime(&now), "_%Y%m%d%H%M%S");
-		outFile += oss.str();
-		cout << outFile << endl;
+		wostringstream wOss;
+		wOss << put_time(localtime(&now), L"_%Y%m%d%H%M%S");
+		outFile += wOss.str();
+		wcout << outFile << endl;
 	}
-	ofstream output(outFile + "_output.txt");
+	
+	wofstream output(outFile + L"_output.txt");
 	for (int layer = 0; layer < _data["layers"].size(); layer++) {
-		output << "Begin Object Class=/Script/Paper2D.PaperTileLayer Name=\"\"\n";
-		output << "   LayerName=NSLOCTEXT(\"\", \"\", " << _data["layers"][layer]["name"] << ")\n";
-		output << "   LayerWidth=" << width << "\n";
-		output << "   LayerHeight=" << height << "\n";
-		output << "   AllocatedWidth=" << width << "\n";
-		output << "   AllocatedHeight=" << height << "\n";
+		wstring layerName = _data["layers"][layer]["name"];
+		output << L"Begin Object Class=/Script/Paper2D.PaperTileLayer Name=\"\"\n";
+		output << L"   LayerName=NSLOCTEXT(\"\", \"\", " << layerName << L")\n";
+		output << L"   LayerWidth=" << width << L"\n";
+		output << L"   LayerHeight=" << height << L"\n";
+		output << L"   AllocatedWidth=" << width << L"\n";
+		output << L"   AllocatedHeight=" << height << L"\n";
 		//ここにマップ変換機構
 		for (int h = 0; h < height; h++) {
 			for (int w = 0; w < width; w++) {
@@ -493,27 +542,27 @@ void Parser::Parse(wstring _path, json _data)
 				//(最後の値のときのみ、空の場合でも生成)
 				if (tiledValue != 0) {
 					//データ変換関数
-					string ueTileset = "";
+					wstring ueTileset = L"";
 					int uePackedTileIndex = -1;
 					ConvertData(tiledValue, &ueTileset, &uePackedTileIndex);
 
 					//変換失敗時に出る値が帰ってきたとき処理終了
-					if (ueTileset != "" && uePackedTileIndex != -1) {
-						output << "   AllocatedCells(" << index << ")=(TileSet=PaperTileSet'\"" << ueTileset << "\"',PackedTileIndex=" << uePackedTileIndex << ")\n";
+					if (ueTileset != L"" && uePackedTileIndex != -1) {
+						output << L"   AllocatedCells(" << index << L")=(TileSet=PaperTileSet'\"" << ueTileset << L"\"',PackedTileIndex=" << uePackedTileIndex << L")\n";
 					}
 					else {
-						OutText("変換に失敗しました。(" + to_string(index) + ")", OS_ERROR);
+						OutText(L"変換に失敗しました。(" + to_wstring(index) + L")", OS_ERROR);
 						return;
 					}
 				}
 				else if (index == height * width - 1) {
-					output << "   AllocatedCells(" << index << ")=()\n";
+					output << L"   AllocatedCells(" << index << L")=()\n";
 				}
 			}
 		}
 		output << "End Object\n\n";
 	}
-	OutputJson(outFile + ".json",
+	OutputJson(outFile + L".json",
 		{
 	{"height", _data["height"]},
 	{"width", _data["width"]},
@@ -527,17 +576,17 @@ void Parser::Parse(wstring _path, json _data)
 
 bool Parser::End() {
 
-	std::cout << "何かキーを押してください..." << std::endl;
+	std::wcout << L"何かキーを押してください..." << std::endl;
 	_getch(); // キー入力を待機（入力内容は表示されない）
 	return 0;
 }
 void Parser::Result() {
-	cout << endl << "処理が終了しました。" << endl;
+	wcout << endl << L"処理が終了しました。" << endl;
 	End();
 }
 
 //ここの処理をかいておわり 多分そうでもないけど
-void Parser::ConvertData(unsigned int tiledValue, string* uePath, int* ueTileValue) {
+void Parser::ConvertData(unsigned int tiledValue, wstring* uePath, int* ueTileValue) {
 	json& linkData = linkPathJson["linkData"];
 	/*
 	Tiled Format -> UE4 Format
@@ -556,7 +605,7 @@ void Parser::ConvertData(unsigned int tiledValue, string* uePath, int* ueTileVal
 		for (int tilesetID = data["tilesets"].size() - 1; tilesetID >= 0; tilesetID--) {
 			//タイルセットリストに格納されたグローバルIDと比較、それよりも現在タイルの値が大きければUEパスとUEタイル値を格納
 			if (gid >= data["tilesets"][tilesetID]["firstgid"]) {
-				*uePath = linkData[useLinkDataIndexes[tilesetID]]["ue4"];
+				StoreWStr(uePath, &linkData[useLinkDataIndexes[tilesetID]]["ue4"]);
 				*ueTileValue = tiledValue - data["tilesets"][tilesetID]["firstgid"];
 
 				break;
@@ -564,7 +613,7 @@ void Parser::ConvertData(unsigned int tiledValue, string* uePath, int* ueTileVal
 		}
 	}
 	catch (json::type_error &e) {
-		OutText("マップデータまたはリンクファイルに必要となるキーが存在しないか、不正な値が入っています。変換を中止します。", OS_ERROR);
+		OutText(L"マップデータまたはリンクファイルに必要となるキーが存在しないか、不正な値が入っています。変換を中止します。", OS_ERROR);
 		return;
 	}
 }
@@ -576,22 +625,6 @@ wstring Parser::GetStem(wstring path)
 	return ret;
 }
 
-void Parser::AddLinkDataA(string tiled_sourcePath, string ue4_path)
-{
-	json& linkData = linkPathJson["linkData"];
-	//リンク処理
-	OutText(tiled_sourcePath + " と " + ue4_path + "をリンクします。", OS_INFO);
-	json value;
-	value += json::object_t::value_type("tiled", tiled_sourcePath);
-	value += json::object_t::value_type("ue4", ue4_path);
-	try {
-		linkData.push_back(value);
-		OutputJson(parentDir + "\\linkPath２うお溢.json", linkPathJson);
-	}
-	catch (json::type_error e) {
-		OutText("保存時にエラーが発生しました(" + (string)e.what(), OS_ERROR);
-	}
-}
 void Parser::AddLinkDataW(wstring tiled_sourcePath, wstring ue4_path)
 {
 	json& linkData = linkPathJson["linkData"];
@@ -602,34 +635,41 @@ void Parser::AddLinkDataW(wstring tiled_sourcePath, wstring ue4_path)
 	value += json::object_t::value_type("ue4", ue4_path);
 	try {
 		linkData.push_back(value);
-		OutputJson(parentDir + "\\linkPath２うお溢.json", linkPathJson);
+		OutputJson(parentDir + L"\\linkPath２うお溢.json", linkPathJson);
 	}
 	catch (json::type_error e) {
-		OutText("保存時にエラーが発生しました(" + (string)e.what(), OS_ERROR);
+		OutText(L"保存時にエラーが発生しました(" + (wchar_t)e.what(), OS_ERROR);
 	}
 }
 
-char Parser::GetKey(string descr)
+void Parser::StoreWStr(wstring* wstr, json* j)
 {
-	std::cout << descr;
+	// UTF-8 を UTF-16 (ワイド文字列) に変換
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+	*wstr = converter.from_bytes(j->dump());
+}
+
+char Parser::GetKey(wstring descr)
+{
+	std::wcout << descr;
 	int inch = _getch();
 	if (isgraph(inch)) {
-		cout << (char)inch << endl;
-		return (char)inch;
+		wcout << (wchar_t)inch << endl;
+		return (wchar_t)inch;
 	}
 	else {
-		cout << "Invalid Input" << endl;
+		wcout << L"Invalid Input" << endl;
 	}
 	return 0x00;
 }
 
-bool Parser::InputBool(string descr)
+bool Parser::InputBool(wstring descr)
 {
-	std::cout << descr << "[Y/N]:";
+	std::wcout << descr << L"[Y/N]:";
 	while (true) {
 		int inch = toupper(_getch());
 		if (In(inch, { 'Y','N' })) {
-			cout << (char)inch << endl;
+			wcout << (wchar_t)inch << endl;
 			return (inch == 'Y' ? true : false);
 			//if (inch == 'Y')return true;
 			//return false;
@@ -638,25 +678,25 @@ bool Parser::InputBool(string descr)
 	return false;
 }
 
-void Parser::OutputJson(string filePath, json content)
+void Parser::OutputJson(wstring filePath, json content)
 {
-	if (((filesystem::path)(filePath)).extension() == ".json") OutText("JSON形式で出力されるファイルの拡張子が.jsonではありません。使用する際はご注意ください。", OS_WARNING);
+	if (((filesystem::path)(filePath)).extension() == ".json") OutText(L"JSON形式で出力されるファイルの拡張子が.jsonではありません。使用する際はご注意ください。", OS_WARNING);
 	ofstream out(filePath);
 	out << content.dump(2);
 	out.close();
 }
 
 //void Parser::OutText(string str, OUTPUT_STATE outState) {
-//	cout << "Aねデ";
+//	wcout << "Aねデ";
 //	switch (outState)
 //	{
-//	case OS_NONE:		cout << " ";						break;
-//	case OS_INFO:		cout << "[INFO] ";					break;
-//	case OS_WARNING:	cout << "\033[33m" << "[WARNING] ";	break;
-//	case OS_ERROR:		cout << "\033[31m" << "[ERROR] ";	break;
+//	case OS_NONE:		wcout << " ";						break;
+//	case OS_INFO:		wcout << "[INFO] ";					break;
+//	case OS_WARNING:	wcout << "\033[33m" << "[WARNING] ";	break;
+//	case OS_ERROR:		wcout << "\033[31m" << "[ERROR] ";	break;
 //	}
 //
-//	cout << str << "\033[0m" << endl;
+//	wcout << str << "\033[0m" << endl;
 //}
 void Parser::OutText(wstring wstr, OUTPUT_STATE outState) {
 	//SetConsoleOutputCP(CP_UTF8);
@@ -668,20 +708,19 @@ void Parser::OutText(wstring wstr, OUTPUT_STATE outState) {
 	case OS_WARNING:	wcout << L"\033[33m" << L"[WARNING] ";	break;
 	case OS_ERROR:		wcout << L"\033[31m" << L"[ERROR] ";	break;
 	}
-	wcout << L"testてすと";
 	wcout << wstr << L"\033[0m" << endl;
 }
 
-bool Parser::BreakNIsContinue(string warnStr)
+bool Parser::BreakNIsContinue(wstring warnStr)
 {
 	OutText(warnStr, OS_WARNING);
-	return InputBool("続行しますか？");
+	return InputBool(L"続行しますか？");
 }
 
-void Parser::PrintStrList(vector<string>* descrList, int startNum)
+void Parser::PrintStrList(vector<wstring>* descrList, int startNum)
 {
 	for (int i = 0; i < descrList->size(); i++) {
-		OutText("  [" + to_string(i + startNum) + "] : " +
+		OutText(L"  [" + to_wstring(i + startNum) + L"] : " +
 			(*descrList)[i]
 		);
 	}
