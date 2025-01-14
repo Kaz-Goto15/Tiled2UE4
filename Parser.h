@@ -44,8 +44,8 @@ private:
 	bool StoreParseFile(int argc, wchar_t* argv[], vector<wstring>* paths);	//読込-基本
 
 	struct STR_FILTER {
-		string descr = "";
-		string ext = "*";
+		wstring descr = L"";
+		wstring ext = L"*";
 	};
 	void SelectFile(vector<wstring>* storePaths, vector<STR_FILTER> filters, wstring dir = L"", bool enAllFile = true);		//複数選択、複数フィルタ
 	void SelectFile(vector<wstring>* storePaths, STR_FILTER filter, wstring dir = L"", bool enAllFile = true);				//複数選択、単一フィルタ
@@ -71,6 +71,7 @@ private:
 
 	//変換関数
 	void StoreWStr(wstring* wstr, json* j);
+	wchar_t* GetWC(const char* c);
 	// ===================== 汎用入出力関数 =====================
 	//キー入力(isgraph)
 	char GetKey(wstring descr = L"");

@@ -104,7 +104,7 @@ bool Parser::StoreParseFile(int argc, wchar_t* argv[], vector<wstring>* paths)
 	//引数がない場合(argcが1以下)
 	else {
 		OutText(L"変換するファイルを選択してください。", OS_INFO);
-		SelectFile(paths, STR_FILTER{ "マップデータ", "json" }, PGetCurrentDirectoryW());
+		SelectFile(paths, STR_FILTER{ L"マップデータ", L"json" }, PGetCurrentDirectoryW());
 		if (paths->size() == 0) {
 			//OutText(L"ファイルが選択されませんでした。終了します。", OS_INFO);
 			return false;
@@ -159,11 +159,11 @@ vector<wstring> Parser::SelectFile_proc(vector<STR_FILTER> filters, wstring dir,
 
 	wchar_t fileName[MAX_PATH] = L"";  //ファイル名を入れる変数
 
-	vector<char> filterArr;
+	vector<wchar_t> filterArr;
 
-	auto AddFilter = [=](vector<char>* flt, STR_FILTER& addFlt) {
-		string overview = addFlt.descr + "(*." + addFlt.ext + ")";
-		string ext = "*." + addFlt.ext;
+	auto AddFilter = [=](vector<wchar_t>* flt, STR_FILTER& addFlt) {
+		wstring overview = addFlt.descr + L"(*." + addFlt.ext + L")";
+		wstring ext = L"*." + addFlt.ext;
 
 		flt->insert(flt->end(), overview.begin(), overview.end());
 		flt->push_back('\0');
@@ -179,7 +179,7 @@ vector<wstring> Parser::SelectFile_proc(vector<STR_FILTER> filters, wstring dir,
 	//全ファイルフィルタの適用関連
 	if (enAllFile) {
 		//全ファイルフィルタ追加
-		STR_FILTER filterAll = { "すべてのファイル" , "*" };
+		STR_FILTER filterAll = { L"すべてのファイル" , L"*" };
 		AddFilter(&filterArr, filterAll);
 	}
 
@@ -190,19 +190,7 @@ vector<wstring> Parser::SelectFile_proc(vector<STR_FILTER> filters, wstring dir,
 	OPENFILENAMEW ofnw;
 	ZeroMemory(&ofnw, sizeof(ofnw));            	//構造体初期化
 	ofnw.lStructSize = sizeof(OPENFILENAMEW);   	//構造体のサイズ
-
-	// 終端文字を考慮してデータをコピー
-	std::string utf8Str(filterArr.begin(), filterArr.end());
-	// UTF-8 から UTF-16 に変換
-	int wideSize = MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, nullptr, 0);
-	std::wstring filterWStr(wideSize, 0);
-	MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, &filterWStr[0], wideSize);
-
-	// 最後の終端文字を削除
-	filterWStr.pop_back();
-
-	//wstring filterWStr;
-	ofnw.lpstrFilter = filterWStr.c_str();
+	ofnw.lpstrFilter = filterArr.data();
 	ofnw.lpstrFile = fileName;               	//ファイル名
 	ofnw.nMaxFile = MAX_PATH;               	//パスの最大文字数
 	if (!isSingleFile)	ofnw.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER;	//これで複数選択ができそう
@@ -211,19 +199,6 @@ vector<wstring> Parser::SelectFile_proc(vector<STR_FILTER> filters, wstring dir,
 	//「ファイルを開く」ダイアログ
 	BOOL selFile;
 	selFile = GetOpenFileNameW(&ofnw);
-
-	//OPENFILENAME ofn;                         	//名前をつけて保存ダイアログの設定用構造体
-	//ZeroMemory(&ofn, sizeof(ofn));            	//構造体初期化
-	//ofn.lStructSize = sizeof(OPENFILENAME);   	//構造体のサイズ
-	//ofn.lpstrFilter = (LPCWSTR)filterArr.data();
-	//ofn.lpstrFile = (LPWSTR)fileName;               	//ファイル名
-	//ofn.nMaxFile = MAX_PATH;               	//パスの最大文字数
-	//if (!isSingleFile)	ofn.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER;	//これで複数選択ができそう
-	//ofn.lpstrDefExt = L"json";                  	//デフォルト拡張子
-	//ofn.lpstrInitialDir = (LPCWSTR)dir.c_str();
-	////「ファイルを開く」ダイアログ
-	//BOOL selFile;
-	//selFile = GetOpenFileNameW(&ofn);
 
 	//キャンセルしたら中断
 	if (selFile == FALSE) return vector<wstring>();
@@ -244,13 +219,10 @@ vector<wstring> Parser::SelectFile_proc(vector<STR_FILTER> filters, wstring dir,
 	}
 
 	// 選択されたファイルを出力
-	for (const auto& file : selectedFiles) std::wcout << "Selected File: " << file << std::endl;
+	for (const auto& file : selectedFiles) std::wcout << L"Selected File: " << file << std::endl;
 
 	//カレントディレクトリをもとにもどす
-	SetCurrentDirectory((LPCWSTR)currentDir.c_str());
-
-	//複数取る方法わからんので今は1個だけプッシュ
-	//260文字超えて失敗したときの処理書いてないけど全部返す
+	SetCurrentDirectoryW(currentDir.c_str());
 	return selectedFiles;
 
 }
@@ -405,7 +377,7 @@ bool Parser::Read(wstring _path, json* _data)
 					//エクスプローラの設定
 					//iniファイルのディレクトリを指定
 					StoreWStr(&pjPath, &linkPathJson["projectPath"]);
-					SelectFile(&exprWStr, STR_FILTER{ "uassetファイル", "uasset" }, pjPath);
+					SelectFile(&exprWStr, STR_FILTER{ L"uassetファイル", L"uasset" }, pjPath);
 					//バイナリからタイルセットかどうかを確認する(タイルセットじゃなかったら警告を入れる)
 					//リンクデータを追加する
 					AddLinkDataW(sourcePath, exprWStr);
@@ -638,15 +610,27 @@ void Parser::AddLinkDataW(wstring tiled_sourcePath, wstring ue4_path)
 		OutputJson(parentDir + L"\\linkPath２うお溢.json", linkPathJson);
 	}
 	catch (json::type_error e) {
-		OutText(L"保存時にエラーが発生しました(" + (wchar_t)e.what(), OS_ERROR);
+		OutText(L"保存時にエラーが発生しました(", OS_ERROR);
+		OutText(L"保存時にエラーが発生しました(" + *GetWC(e.what()), OS_ERROR);
 	}
 }
 
 void Parser::StoreWStr(wstring* wstr, json* j)
 {
 	// UTF-8 を UTF-16 (ワイド文字列) に変換
+
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-	*wstr = converter.from_bytes(j->dump());
+	*wstr = converter.from_bytes(j->get<string>());
+
+}
+
+wchar_t* Parser::StoreWC(wchar_t* wc, const char* c)
+{
+	const size_t cSize = strlen(c) + 1;
+	wchar_t* wc = new wchar_t[cSize];
+	mbstowcs(wc, c, cSize);
+
+	return wc;
 }
 
 char Parser::GetKey(wstring descr)
@@ -680,10 +664,13 @@ bool Parser::InputBool(wstring descr)
 
 void Parser::OutputJson(wstring filePath, json content)
 {
-	if (((filesystem::path)(filePath)).extension() == ".json") OutText(L"JSON形式で出力されるファイルの拡張子が.jsonではありません。使用する際はご注意ください。", OS_WARNING);
-	ofstream out(filePath);
-	out << content.dump(2);
-	out.close();
+	if (((filesystem::path)(filePath)).extension().wstring() != L".json") OutText(L"JSON形式で出力されるファイルの拡張子が.jsonではありません。使用する際はご注意ください。", OS_WARNING);
+	wofstream wout(filePath);
+	wstring ws;
+	StoreWStr(&ws, &content);
+	wout << ws;
+	//wout << content.dump(2);
+	wout.close();
 }
 
 //void Parser::OutText(string str, OUTPUT_STATE outState) {
