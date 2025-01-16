@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+ï»¿#define _CRT_SECURE_NO_WARNINGS
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 #include "Parser.h"
 
@@ -19,12 +19,12 @@ Parser::Parser()
 }
 
 bool Parser::Init(wchar_t* exePath) {
-	//Àsƒtƒ@ƒCƒ‹‚ÌƒfƒBƒŒƒNƒgƒŠ‚ğæ“¾
+	//å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å–å¾—
 	std::filesystem::path path = exePath;
 	parentDir = path.parent_path().wstring();
 	outDir = parentDir + L"\\output\\";
 
-	//Tiled‚ÆUE4‚ÌƒŠƒ“ƒNƒtƒ@ƒCƒ‹‚ğ“Ç
+	//Tiledã¨UE4ã®ãƒªãƒ³ã‚¯ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­è¾¼
 	wstring lpPath = parentDir + L"\\linkPath.json";
 	if (filesystem::exists(lpPath)) {
 		std::ifstream lp(lpPath);
@@ -33,19 +33,20 @@ bool Parser::Init(wchar_t* exePath) {
 			linkPathJson = json::parse(lp);
 		}
 		catch (json::parse_error e) {
-			OutText(L"ƒŠƒ“ƒNƒpƒXƒtƒ@ƒCƒ‹‚Ì“Ç‚É–â‘è‚ª”­¶‚µ‚Ü‚µ‚½F" + (wchar_t)e.what(), OS_ERROR);
+			wstring eWStr = GetWC(e.what());
+			OutText(L"ãƒªãƒ³ã‚¯ãƒ‘ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­è¾¼æ™‚ã«å•é¡ŒãŒç™ºç”Ÿã—ã¾ã—ãŸï¼š" + eWStr, OS_ERROR);
 			return false;
 		}
 	}
 	else {
-		OutText(L"ƒŠƒ“ƒNƒpƒXƒtƒ@ƒCƒ‹‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB", OS_ERROR);
+		OutText(L"ãƒªãƒ³ã‚¯ãƒ‘ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚", OS_ERROR);
 		return 0;
 	}
 
 	if (!filesystem::is_directory(outDir)) {
-		OutText(L"o—ÍƒtƒHƒ‹ƒ_‚ª‚ ‚è‚Ü‚¹‚ñBƒfƒBƒŒƒNƒgƒŠ‚ğ©“®’Ç‰Á‚µ‚Ü‚·B", OS_WARNING);
+		OutText(L"å‡ºåŠ›ãƒ•ã‚©ãƒ«ãƒ€ãŒã‚ã‚Šã¾ã›ã‚“ã€‚ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’è‡ªå‹•è¿½åŠ ã—ã¾ã™ã€‚", OS_WARNING);
 		if (!filesystem::create_directory(outDir)) {
-			OutText(L"o—ÍƒtƒHƒ‹ƒ_‚Ìì¬‚É¸”s‚µ‚Ü‚µ‚½BŠÇ—ÒŒ ŒÀ‚ª•K—v‚ÈêŠ‚ÅÀs‚µ‚Ä‚¢‚é‚©A—e—Ê‚ª‘«‚è‚È‚¢‰Â”\«‚ª‚ ‚è‚Ü‚·B", OS_ERROR);
+			OutText(L"å‡ºåŠ›ãƒ•ã‚©ãƒ«ãƒ€ã®ä½œæˆã«å¤±æ•—ã—ã¾ã—ãŸã€‚ç®¡ç†è€…æ¨©é™ãŒå¿…è¦ãªå ´æ‰€ã§å®Ÿè¡Œã—ã¦ã„ã‚‹ã‹ã€å®¹é‡ãŒè¶³ã‚Šãªã„å¯èƒ½æ€§ãŒã‚ã‚Šã¾ã™ã€‚", OS_ERROR);
 			return 0;
 		};
 	}
@@ -53,37 +54,37 @@ bool Parser::Init(wchar_t* exePath) {
 
 bool Parser::Process(int argc, wchar_t* argv[])
 {
-	//‰Šú‰»
-	OutText(L"ƒp[ƒT‚ÌƒZƒbƒgƒAƒbƒv‚ğŠJn", OS_INFO);
+	//åˆæœŸåŒ–
+	OutText(L"ãƒ‘ãƒ¼ã‚µã®ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—ã‚’é–‹å§‹", OS_INFO);
 	if (Init(argv[0])) {
-		OutText(L"ƒp[ƒT‚ÌƒZƒbƒgƒAƒbƒv‚ªŠ®—¹", OS_INFO);
+		OutText(L"ãƒ‘ãƒ¼ã‚µã®ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—ãŒå®Œäº†", OS_INFO);
 	}
 	else {
-		OutText(L"ƒZƒbƒgƒAƒbƒv‚É–â‘è‚ª”­¶‚µ‚Ü‚µ‚½Bˆ—‚ğI—¹‚µ‚Ü‚·B", OS_NONE);
+		OutText(L"ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—æ™‚ã«å•é¡ŒãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚å‡¦ç†ã‚’çµ‚äº†ã—ã¾ã™ã€‚", OS_NONE);
 		End();
 		return false;
 	}
 
-	//ƒtƒ@ƒCƒ‹‘I‘ğ
+	//ãƒ•ã‚¡ã‚¤ãƒ«é¸æŠ
 	if (!StoreParseFile(argc, argv, &parsePaths)) {
-		OutText(L"ƒtƒ@ƒCƒ‹‚ª‘I‘ğ‚³‚ê‚Ü‚¹‚ñ‚Å‚µ‚½Bˆ—‚ğI—¹‚µ‚Ü‚·B", OS_NONE);
+		OutText(L"ãƒ•ã‚¡ã‚¤ãƒ«ãŒé¸æŠã•ã‚Œã¾ã›ã‚“ã§ã—ãŸã€‚å‡¦ç†ã‚’çµ‚äº†ã—ã¾ã™ã€‚", OS_NONE);
 		End();
 		return false;
 	}
 
-	//“Ç+ˆ—
+	//èª­è¾¼+å‡¦ç†
 	for (int i = 0; i < parsePaths.size(); i++) {
 		Br();
-		OutText(parsePaths[i] + L" ‚ğ•ÏŠ·‚µ‚Ä‚¢‚Ü‚·...(" + to_wstring(i + 1) + L"/" + to_wstring(parsePaths.size()) + L")", OS_INFO);
+		OutText(parsePaths[i] + L" ã‚’å¤‰æ›ã—ã¦ã„ã¾ã™...(" + to_wstring(i + 1) + L"/" + to_wstring(parsePaths.size()) + L")", OS_INFO);
 		Br();
 
-		//“Ç
+		//èª­è¾¼
 		if (!Read(parsePaths[i], &data))continue;
 
-		//ˆ—
+		//å‡¦ç†
 		Parse(parsePaths[i], data);
 	}
-	//“Ç+ˆ—
+	//èª­è¾¼+å‡¦ç†
 
 	Result();
 	return 0;
@@ -91,26 +92,24 @@ bool Parser::Process(int argc, wchar_t* argv[])
 
 bool Parser::StoreParseFile(int argc, wchar_t* argv[], vector<wstring>* paths)
 {
-	// ˆø”‚ª1‚ÂˆÈã‚ ‚éê‡i0”Ô–Ú‚ÍÀsƒtƒ@ƒCƒ‹©g‚ÌƒpƒXj
+	// å¼•æ•°ãŒ1ã¤ä»¥ä¸Šã‚ã‚‹å ´åˆï¼ˆ0ç•ªç›®ã¯å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«è‡ªèº«ã®ãƒ‘ã‚¹ï¼‰
 	if (argc > 1) {
-		OutText(L"D&D‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ğ“Ç‚İ‚İ‚Ü‚·B", OS_INFO);
-		OutText(L"“Çƒf[ƒ^F");
+		OutText(L"D&Dã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿è¾¼ã¿ã¾ã™ã€‚", OS_INFO);
+		OutText(L"èª­è¾¼ãƒ‡ãƒ¼ã‚¿ï¼š");
 		for (int i = 1; i < argc; i++) {
 			paths->push_back(argv[i]);
 			OutText(L"  [" + to_wstring(i - 1) + L"] : " + argv[i]);
-			wcout << L"‚¤‚¨" << endl;
 		}
 	}
-	//ˆø”‚ª‚È‚¢ê‡(argc‚ª1ˆÈ‰º)
+	//å¼•æ•°ãŒãªã„å ´åˆ(argcãŒ1ä»¥ä¸‹)
 	else {
-		OutText(L"•ÏŠ·‚·‚éƒtƒ@ƒCƒ‹‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢B", OS_INFO);
-		SelectFile(paths, STR_FILTER{ L"ƒ}ƒbƒvƒf[ƒ^", L"json" }, PGetCurrentDirectoryW());
+		OutText(L"å¤‰æ›ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é¸æŠã—ã¦ãã ã•ã„ã€‚", OS_INFO);
+		SelectFile(paths, STR_FILTER{ L"ãƒãƒƒãƒ—ãƒ‡ãƒ¼ã‚¿", L"json" }, PGetCurrentDirectoryW());
 		if (paths->size() == 0) {
-			//OutText(L"ƒtƒ@ƒCƒ‹‚ª‘I‘ğ‚³‚ê‚Ü‚¹‚ñ‚Å‚µ‚½BI—¹‚µ‚Ü‚·B", OS_INFO);
 			return false;
 		}
 		else {
-			OutText(L"“Çƒf[ƒ^F");
+			OutText(L"èª­è¾¼ãƒ‡ãƒ¼ã‚¿ï¼š");
 			for (int i = 0; i < paths->size(); i++) {
 				OutText(L"  [" + to_wstring(i) + L"] : " + (*paths)[i]);
 			}
@@ -154,10 +153,10 @@ vector<wstring> Parser::SelectFile_proc(vector<STR_FILTER> filters, wstring dir,
 {
 	wstring currentDir = PGetCurrentDirectoryW();
 	
-	//w’èƒfƒBƒŒƒNƒgƒŠ‚ª‘¶İ‚µ‚È‚¢‚Æ‚«AƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚É‚È‚é‚æ‚¤w’è
+	//æŒ‡å®šãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãŒå­˜åœ¨ã—ãªã„ã¨ãã€ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«ãªã‚‹ã‚ˆã†æŒ‡å®š
 	if (!filesystem::exists(dir)) 	dir = currentDir;
 
-	wchar_t fileName[MAX_PATH] = L"";  //ƒtƒ@ƒCƒ‹–¼‚ğ“ü‚ê‚é•Ï”
+	wchar_t fileName[MAX_PATH] = L"";  //ãƒ•ã‚¡ã‚¤ãƒ«åã‚’å…¥ã‚Œã‚‹å¤‰æ•°
 
 	vector<wchar_t> filterArr;
 
@@ -171,46 +170,46 @@ vector<wstring> Parser::SelectFile_proc(vector<STR_FILTER> filters, wstring dir,
 		flt->push_back('\0');
 		};
 
-	//w’èƒtƒBƒ‹ƒ^’Ç‰Á
+	//æŒ‡å®šãƒ•ã‚£ãƒ«ã‚¿è¿½åŠ 
 	for (auto& flt : filters) {
 		AddFilter(&filterArr, flt);
 	}
 
-	//‘Sƒtƒ@ƒCƒ‹ƒtƒBƒ‹ƒ^‚Ì“K—pŠÖ˜A
+	//å…¨ãƒ•ã‚¡ã‚¤ãƒ«ãƒ•ã‚£ãƒ«ã‚¿ã®é©ç”¨é–¢é€£
 	if (enAllFile) {
-		//‘Sƒtƒ@ƒCƒ‹ƒtƒBƒ‹ƒ^’Ç‰Á
-		STR_FILTER filterAll = { L"‚·‚×‚Ä‚Ìƒtƒ@ƒCƒ‹" , L"*" };
+		//å…¨ãƒ•ã‚¡ã‚¤ãƒ«ãƒ•ã‚£ãƒ«ã‚¿è¿½åŠ 
+		STR_FILTER filterAll = { L"ã™ã¹ã¦ã®ãƒ•ã‚¡ã‚¤ãƒ«" , L"*" };
 		AddFilter(&filterArr, filterAll);
 	}
 
-	// ƒtƒBƒ‹ƒ^•¶š—ñ‘S‘Ì‚ğ NULL I’[‚·‚é
+	// ãƒ•ã‚£ãƒ«ã‚¿æ–‡å­—åˆ—å…¨ä½“ã‚’ NULL çµ‚ç«¯ã™ã‚‹
 	filterArr.push_back('\0');
 
-	//uƒtƒ@ƒCƒ‹‚ğŠJ‚­vƒ_ƒCƒAƒƒO‚Ìİ’è
+	//ã€Œãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ãã€ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®è¨­å®š
 	OPENFILENAMEW ofnw;
-	ZeroMemory(&ofnw, sizeof(ofnw));            	//\‘¢‘Ì‰Šú‰»
-	ofnw.lStructSize = sizeof(OPENFILENAMEW);   	//\‘¢‘Ì‚ÌƒTƒCƒY
+	ZeroMemory(&ofnw, sizeof(ofnw));            	//æ§‹é€ ä½“åˆæœŸåŒ–
+	ofnw.lStructSize = sizeof(OPENFILENAMEW);   	//æ§‹é€ ä½“ã®ã‚µã‚¤ã‚º
 	ofnw.lpstrFilter = filterArr.data();
-	ofnw.lpstrFile = fileName;               	//ƒtƒ@ƒCƒ‹–¼
-	ofnw.nMaxFile = MAX_PATH;               	//ƒpƒX‚ÌÅ‘å•¶š”
-	if (!isSingleFile)	ofnw.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER;	//‚±‚ê‚Å•¡”‘I‘ğ‚ª‚Å‚«‚»‚¤
-	ofnw.lpstrDefExt = L"json";                  	//ƒfƒtƒHƒ‹ƒgŠg’£q
+	ofnw.lpstrFile = fileName;               	//ãƒ•ã‚¡ã‚¤ãƒ«å
+	ofnw.nMaxFile = MAX_PATH;               	//ãƒ‘ã‚¹ã®æœ€å¤§æ–‡å­—æ•°
+	if (!isSingleFile)	ofnw.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER;	//ã“ã‚Œã§è¤‡æ•°é¸æŠãŒã§ããã†
+	ofnw.lpstrDefExt = L"json";                  	//ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆæ‹¡å¼µå­
 	ofnw.lpstrInitialDir = dir.c_str();
-	//uƒtƒ@ƒCƒ‹‚ğŠJ‚­vƒ_ƒCƒAƒƒO
+	//ã€Œãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ãã€ãƒ€ã‚¤ã‚¢ãƒ­ã‚°
 	BOOL selFile;
 	selFile = GetOpenFileNameW(&ofnw);
 
-	//ƒLƒƒƒ“ƒZƒ‹‚µ‚½‚ç’†’f
+	//ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã—ãŸã‚‰ä¸­æ–­
 	if (selFile == FALSE) return vector<wstring>();
 
-	// •¡”ƒtƒ@ƒCƒ‹‚ª‘I‘ğ‚³‚ê‚½ê‡
+	// è¤‡æ•°ãƒ•ã‚¡ã‚¤ãƒ«ãŒé¸æŠã•ã‚ŒãŸå ´åˆ
 	std::vector<std::wstring> selectedFiles;
 	std::wstring directory(fileName);
 	TCHAR* ptr = (TCHAR*)fileName + directory.length() + 1;
 
-	if (*ptr == '\0')	selectedFiles.push_back(directory);	//’Pˆêƒtƒ@ƒCƒ‹‚Ìê‡
+	if (*ptr == '\0')	selectedFiles.push_back(directory);	//å˜ä¸€ãƒ•ã‚¡ã‚¤ãƒ«ã®å ´åˆ
 	else {
-		//•¡”ƒtƒ@ƒCƒ‹‚Ìê‡
+		//è¤‡æ•°ãƒ•ã‚¡ã‚¤ãƒ«ã®å ´åˆ
 		while (*ptr) {
 			wstring s = ptr;
 			selectedFiles.push_back(directory + L"\\" + wstring(ptr));
@@ -218,10 +217,10 @@ vector<wstring> Parser::SelectFile_proc(vector<STR_FILTER> filters, wstring dir,
 		}
 	}
 
-	// ‘I‘ğ‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ğo—Í
+	// é¸æŠã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‡ºåŠ›
 	for (const auto& file : selectedFiles) std::wcout << L"Selected File: " << file << std::endl;
 
-	//ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚ğ‚à‚Æ‚É‚à‚Ç‚·
+	//ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ã‚‚ã¨ã«ã‚‚ã©ã™
 	SetCurrentDirectoryW(currentDir.c_str());
 	return selectedFiles;
 
@@ -229,12 +228,12 @@ vector<wstring> Parser::SelectFile_proc(vector<STR_FILTER> filters, wstring dir,
 
 bool Parser::Read(wstring _path, json* _data)
 {
-	//‰Šú‰»
+	//åˆæœŸåŒ–
 	useLinkDataIndexes.clear();
 
 	json& linkData = linkPathJson["linkData"];
-	//if (1/*Unicode‚ª‚ ‚é‚©*/) {
-	//	//ƒf[ƒ^ƒRƒs[
+	//if (1/*UnicodeãŒã‚ã‚‹ã‹*/) {
+	//	//ãƒ‡ãƒ¼ã‚¿ã‚³ãƒ”ãƒ¼
 	//	string tmpPath = outDir + "uniTemp.tmp";
 	//	ofstream tmp(tmpPath);
 	//	tmp << 
@@ -242,12 +241,13 @@ bool Parser::Read(wstring _path, json* _data)
 	//	//path.replace_extension(".json");
 	//}
 	//else {
-		//json“Ç
+		//jsonèª­è¾¼
 		filesystem::path inPath = _path;
 		std::ifstream f(_path);
 		try { *_data = json::parse(f); }
 		catch (json::parse_error e) {
-			OutText(L"ƒ}ƒbƒvƒf[ƒ^‚Ì“Ç‚É¸”s‚µ‚Ü‚µ‚½F" + (wchar_t)(e.what()), OS_ERROR);
+			wstring eWStr = GetWC(e.what());
+			OutText(L"ãƒãƒƒãƒ—ãƒ‡ãƒ¼ã‚¿ã®èª­è¾¼ã«å¤±æ•—ã—ã¾ã—ãŸï¼š" + eWStr, OS_ERROR);
 			return false;
 		}
 
@@ -255,29 +255,29 @@ bool Parser::Read(wstring _path, json* _data)
 	
 	
 	bool isLinked = false;
-	//g—p‚µ‚½ƒ^ƒCƒ‹ƒZƒbƒg‚ªUEƒpƒX‚Æ•R•t‚¯‚ç‚ê‚Ä‚¢‚é‚©
+	//ä½¿ç”¨ã—ãŸã‚¿ã‚¤ãƒ«ã‚»ãƒƒãƒˆãŒUEãƒ‘ã‚¹ã¨ç´ä»˜ã‘ã‚‰ã‚Œã¦ã„ã‚‹ã‹
 	for (json& source : (*_data)["tilesets"]) {
 		wstring sourcePath;
 		StoreWStr(&sourcePath, &source["source"]);
-		isLinked = false;	//ˆê’UƒŠƒ“ƒN‚³‚ê‚Ä‚È‚¢”»’è‚É‚·‚é
+		isLinked = false;	//ä¸€æ—¦ãƒªãƒ³ã‚¯ã•ã‚Œã¦ãªã„åˆ¤å®šã«ã™ã‚‹
 
 		for (int index = 0; index < linkData.size(); index++) {
 			wstring linkPath;
 
 			StoreWStr(&linkPath, &linkData[index]["tiled"]);
 			if (sourcePath == linkPath) {
-				//‘¶İ‚µ‚½ê‡
-				useLinkDataIndexes.push_back(index);	//json“à‚Ìg—pƒ^ƒCƒ‹ƒZƒbƒgƒCƒ“ƒfƒbƒNƒX(0‚©‚ç‡‚Éƒ‹[ƒv‚µ‚Ä‚¢‚é‚½‚ßpush_back‚ÅOK)‚ÆlinkPath‚ÌƒCƒ“ƒfƒbƒNƒX‚ğ•R•t‚¯
+				//å­˜åœ¨ã—ãŸå ´åˆ
+				useLinkDataIndexes.push_back(index);	//jsonå†…ã®ä½¿ç”¨ã‚¿ã‚¤ãƒ«ã‚»ãƒƒãƒˆã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹(0ã‹ã‚‰é †ã«ãƒ«ãƒ¼ãƒ—ã—ã¦ã„ã‚‹ãŸã‚push_backã§OK)ã¨linkPathã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’ç´ä»˜ã‘
 				isLinked = true;
 				break;
 			}
 		}
-		//‘¶İ‚µ‚È‚©‚Á‚½ê‡
+		//å­˜åœ¨ã—ãªã‹ã£ãŸå ´åˆ
 		if (!isLinked) {
-			OutText(L"g—pƒ^ƒCƒ‹ƒZƒbƒg " + sourcePath + L" ‚ªƒŠƒ“ƒN‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB", OS_ERROR);
+			OutText(L"ä½¿ç”¨ã‚¿ã‚¤ãƒ«ã‚»ãƒƒãƒˆ " + sourcePath + L" ãŒãƒªãƒ³ã‚¯ã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚", OS_ERROR);
 
 			vector<int> sameFileNameIndexes;
-			//‚Ü‚¸‚Íg—pƒ^ƒCƒ‹ƒZƒbƒg‚Ìƒtƒ@ƒCƒ‹–¼‚Æ“¯‚¶ƒtƒ@ƒCƒ‹–¼‚ªƒŠƒ“ƒNƒtƒ@ƒCƒ‹‚É“o˜^‚³‚ê‚Ä‚¢‚é‚©”»’è
+			//ã¾ãšã¯ä½¿ç”¨ã‚¿ã‚¤ãƒ«ã‚»ãƒƒãƒˆã®ãƒ•ã‚¡ã‚¤ãƒ«åã¨åŒã˜ãƒ•ã‚¡ã‚¤ãƒ«åãŒãƒªãƒ³ã‚¯ãƒ•ã‚¡ã‚¤ãƒ«ã«ç™»éŒ²ã•ã‚Œã¦ã„ã‚‹ã‹åˆ¤å®š
 			wstring sourceStem = GetStem(sourcePath);
 			for (int index = 0; index < linkData.size(); index++) {
 				wstring linkPath;
@@ -286,14 +286,14 @@ bool Parser::Read(wstring _path, json* _data)
 					sameFileNameIndexes.push_back(index);
 				}
 			}
-			//‚ ‚Á‚½ê‡AUE‚ÌƒpƒX‚Æ•\¦‚·‚é
+			//ã‚ã£ãŸå ´åˆã€UEã®ãƒ‘ã‚¹ã¨è¡¨ç¤ºã™ã‚‹
 			if (sameFileNameIndexes.size() > 0) {
-				OutText(L"ƒŠƒ“ƒNƒtƒ@ƒCƒ‹‚©‚çƒpƒX‚Ì‚İ‚ªˆÙ‚È‚é“¯–¼‚ÌƒŠƒ“ƒNƒf[ƒ^‚ªŒ©‚Â‚©‚è‚Ü‚µ‚½B“¯‚¶UEƒAƒZƒbƒg‚ğƒŠƒ“ƒN‚·‚éê‡A‘Î‰‚·‚é”Ô†‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B\n", OS_INFO);
-				OutText(L"  [" + to_wstring(0) + L"] : ‘I‘ğ‚µ‚È‚¢");
+				OutText(L"ãƒªãƒ³ã‚¯ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰ãƒ‘ã‚¹ã®ã¿ãŒç•°ãªã‚‹åŒåã®ãƒªãƒ³ã‚¯ãƒ‡ãƒ¼ã‚¿ãŒè¦‹ã¤ã‹ã‚Šã¾ã—ãŸã€‚åŒã˜UEã‚¢ã‚»ãƒƒãƒˆã‚’ãƒªãƒ³ã‚¯ã™ã‚‹å ´åˆã€å¯¾å¿œã™ã‚‹ç•ªå·ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„ã€‚\n", OS_INFO);
+				OutText(L"  [" + to_wstring(0) + L"] : é¸æŠã—ãªã„");
 				
 				for (int i = 0; i < sameFileNameIndexes.size(); i++) {
 					//if (i > 6) {
-					//	pages++;		//8ˆÈã‚Ìd•¡ƒtƒ@ƒCƒ‹‚É‘Î‰‚·‚é‚É‚Í‚±‚±‚ç‚Ö‚ñ‚ğ‚¢‚¶‚é
+					//	pages++;		//8ä»¥ä¸Šã®é‡è¤‡ãƒ•ã‚¡ã‚¤ãƒ«ã«å¯¾å¿œã™ã‚‹ã«ã¯ã“ã“ã‚‰ã¸ã‚“ã‚’ã„ã˜ã‚‹
 					//}
 					wstring tiledPathW, ue4PathW;
 					StoreWStr(&tiledPathW, &linkData[sameFileNameIndexes[i]]["tiled"]);
@@ -305,17 +305,17 @@ bool Parser::Read(wstring _path, json* _data)
 				}
 				char inch = 0x00;
 				while (inch < '0' || inch > '9') {
-					inch = GetKey(L"”Ô†‚ğ“ü—ÍF");
+					inch = GetKey(L"ç•ªå·ã‚’å…¥åŠ›ï¼š");
 					if (inch == '0')break;
 					if (inch >= '1' && inch <= '7') {
 
-						//”Ô†“à‚È‚ç‚Îˆ—‚·‚éA”Ô†ŠO‚È‚ç‚à‚¤ˆê‰ñ
+						//ç•ªå·å†…ãªã‚‰ã°å‡¦ç†ã™ã‚‹ã€ç•ªå·å¤–ãªã‚‰ã‚‚ã†ä¸€å›
 						if ((inch - '0') <= sameFileNameIndexes.size()) {
-							//ƒŠƒ“ƒNˆ—
+							//ãƒªãƒ³ã‚¯å‡¦ç†
 							wstring ue4_path;
 							StoreWStr(&ue4_path, &linkData[sameFileNameIndexes[inch - '1']]["ue4"]);
 
-							OutText(sourcePath + L" ‚Æ " + ue4_path + L"‚ğƒŠƒ“ƒN‚µ‚Ü‚·B", OS_INFO);
+							OutText(sourcePath + L" ã¨ " + ue4_path + L"ã‚’ãƒªãƒ³ã‚¯ã—ã¾ã™ã€‚", OS_INFO);
 							AddLinkDataW(sourcePath, linkData[sameFileNameIndexes[inch - '1']]["ue4"]);
 						}
 					}
@@ -329,15 +329,15 @@ bool Parser::Read(wstring _path, json* _data)
 					//}
 				}
 			}
-			//‚È‚¢ê‡A‚Ù‚©‚Ìˆ—‚ğ‘I‘ğ‚³‚¹‚é
+			//ãªã„å ´åˆã€ã»ã‹ã®å‡¦ç†ã‚’é¸æŠã•ã›ã‚‹
 			wstring wSrc;
 			StoreWStr(&wSrc, &source["source"]);
-			OutText(L"–¢ƒŠƒ“ƒN‚Ìƒ^ƒCƒ‹ƒZƒbƒg " + wSrc + L" ‚É‘Î‚·‚éˆ—‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢B", OS_INFO);
+			OutText(L"æœªãƒªãƒ³ã‚¯ã®ã‚¿ã‚¤ãƒ«ã‚»ãƒƒãƒˆ " + wSrc + L" ã«å¯¾ã™ã‚‹å‡¦ç†ã‚’é¸æŠã—ã¦ãã ã•ã„ã€‚", OS_INFO);
 			vector<wstring> noLinkedProcStrArr = {
-				L"“Çˆ—‚ğ’†~",
-				L"ƒŠƒ“ƒNÏƒŠƒXƒg‚©‚ç‘I‘ğ‚µ‚ÄƒŠƒ“ƒN",
-				L"ƒGƒNƒXƒvƒ[ƒ‰‚©‚çuassetƒtƒ@ƒCƒ‹‚ğ‘I‘ğ‚µ‚ÄƒŠƒ“ƒN",
-				L"UE4“à‚ÅƒRƒsƒy‚µ‚½ƒAƒZƒbƒgƒpƒX‚ğ’¼Ú‹L“ü‚µ‚ÄƒŠƒ“ƒN"
+				L"èª­è¾¼å‡¦ç†ã‚’ä¸­æ­¢",
+				L"ãƒªãƒ³ã‚¯æ¸ˆãƒªã‚¹ãƒˆã‹ã‚‰é¸æŠã—ã¦ãƒªãƒ³ã‚¯",
+				L"ã‚¨ã‚¯ã‚¹ãƒ—ãƒ­ãƒ¼ãƒ©ã‹ã‚‰uassetãƒ•ã‚¡ã‚¤ãƒ«ã‚’é¸æŠã—ã¦ãƒªãƒ³ã‚¯",
+				L"UE4å†…ã§ã‚³ãƒ”ãƒšã—ãŸã‚¢ã‚»ãƒƒãƒˆãƒ‘ã‚¹ã‚’ç›´æ¥è¨˜å…¥ã—ã¦ãƒªãƒ³ã‚¯"
 			};
 			PrintStrList(&noLinkedProcStrArr);
 			bool endFlag = false;
@@ -345,27 +345,27 @@ bool Parser::Read(wstring _path, json* _data)
 			while (!endFlag) {
 				char in;
 				while (true) {
-					in = GetKey(L"  ˆ—”Ô†‚ğ“ü—Í:");
+					in = GetKey(L"  å‡¦ç†ç•ªå·ã‚’å…¥åŠ›:");
 
 					if (in < '0' || (in-'0') >= noLinkedProcStrArr.size()) {
-						//cout << "–³Œø‚Èˆ—”Ô†‚Å‚·B" << endl;
+						//cout << "ç„¡åŠ¹ãªå‡¦ç†ç•ªå·ã§ã™ã€‚" << endl;
 					}
 					else break;
 				}
 
 				string inputAsset = "";
 				wstring linkedWStr = L"";
-				wstring exprWStr;
+				wstring exprWStr = L"";
 				u16string u16str;
 				wstring pjPath;
 				switch (in)
 				{
-				case '0':	//’†~
-					OutText(L"‚±‚Ìƒ}ƒbƒvƒf[ƒ^‚Ì“Ç‚ğ’†~‚µ‚Ü‚µ‚½B", OS_INFO);
+				case '0':	//ä¸­æ­¢
+					OutText(L"ã“ã®ãƒãƒƒãƒ—ãƒ‡ãƒ¼ã‚¿ã®èª­è¾¼ã‚’ä¸­æ­¢ã—ã¾ã—ãŸã€‚", OS_INFO);
 					return false;
 					break;
-				case '1':	//ƒŠƒ“ƒNÏƒŠƒXƒg‚©‚ç‘I‘ğ
-					OutText(L"ˆÈ‰º‚ÌƒŠƒXƒg‚É‚ ‚éê‡A¶‚ÌƒCƒ“ƒfƒbƒNƒX‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B");
+				case '1':	//ãƒªãƒ³ã‚¯æ¸ˆãƒªã‚¹ãƒˆã‹ã‚‰é¸æŠ
+					OutText(L"ä»¥ä¸‹ã®ãƒªã‚¹ãƒˆã«ã‚ã‚‹å ´åˆã€å·¦ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„ã€‚");
 					for (int index = 0; index < linkData.size(); index++) {
 
 						StoreWStr(&linkedWStr, &linkData[index]["ue4"]);
@@ -373,55 +373,60 @@ bool Parser::Read(wstring _path, json* _data)
 						OutText(index + L" -> " + linkedWStr, OS_NONE);
 					}
 					break;
-				case '2':	//ƒGƒNƒXƒvƒ[ƒ‰‘I‘ğ
-					//ƒGƒNƒXƒvƒ[ƒ‰‚Ìİ’è
-					//iniƒtƒ@ƒCƒ‹‚ÌƒfƒBƒŒƒNƒgƒŠ‚ğw’è
+				case '2':	//ã‚¨ã‚¯ã‚¹ãƒ—ãƒ­ãƒ¼ãƒ©é¸æŠ
+					//ã‚¨ã‚¯ã‚¹ãƒ—ãƒ­ãƒ¼ãƒ©ã®è¨­å®š
+					//iniãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æŒ‡å®š
 					StoreWStr(&pjPath, &linkPathJson["projectPath"]);
-					SelectFile(&exprWStr, STR_FILTER{ L"uassetƒtƒ@ƒCƒ‹", L"uasset" }, pjPath);
-					//ƒoƒCƒiƒŠ‚©‚çƒ^ƒCƒ‹ƒZƒbƒg‚©‚Ç‚¤‚©‚ğŠm”F‚·‚é(ƒ^ƒCƒ‹ƒZƒbƒg‚¶‚á‚È‚©‚Á‚½‚çŒx‚ğ“ü‚ê‚é)
-					//ƒŠƒ“ƒNƒf[ƒ^‚ğ’Ç‰Á‚·‚é
+					wcout << pjPath << endl;
+					SelectFile(&exprWStr, STR_FILTER{ L"uassetãƒ•ã‚¡ã‚¤ãƒ«", L"uasset" }, pjPath);
+					if (exprWStr == L"") {
+						OutText(L"ãƒ•ã‚¡ã‚¤ãƒ«ãŒé¸æŠã•ã‚Œã¾ã›ã‚“ã§ã—ãŸã€‚", OS_INFO);
+						break;
+					}
+					//ãƒã‚¤ãƒŠãƒªã‹ã‚‰ã‚¿ã‚¤ãƒ«ã‚»ãƒƒãƒˆã‹ã©ã†ã‹ã‚’ç¢ºèªã™ã‚‹(ã‚¿ã‚¤ãƒ«ã‚»ãƒƒãƒˆã˜ã‚ƒãªã‹ã£ãŸã‚‰è­¦å‘Šã‚’å…¥ã‚Œã‚‹)
+					//ãƒªãƒ³ã‚¯ãƒ‡ãƒ¼ã‚¿ã‚’è¿½åŠ ã™ã‚‹
 					AddLinkDataW(sourcePath, exprWStr);
 
 					break;
-				case '3':	//ƒpƒX“ü—Í
-					OutText(L"UE4‚ÌƒRƒ“ƒeƒ“ƒcƒuƒ‰ƒEƒU‚ÅƒRƒs[‚µ‚½ƒAƒZƒbƒgƒpƒX‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B", OS_INFO);
+				case '3':	//ãƒ‘ã‚¹å…¥åŠ›
+					OutText(L"UE4ã®ã‚³ãƒ³ãƒ†ãƒ³ãƒ„ãƒ–ãƒ©ã‚¦ã‚¶ã§ã‚³ãƒ”ãƒ¼ã—ãŸã‚¢ã‚»ãƒƒãƒˆãƒ‘ã‚¹ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„ã€‚", OS_INFO);
 					//SetConsoleOutputCP(1252);
 					//SetConsoleCP(1252);
 					struct IMPORT_DATA_ATTR {
-						int isPaperTileSet = -1;	//-1=•s–¾ 0=•s 1=³
+						int isPaperTileSet = -1;	//-1=ä¸æ˜ 0=ä¸ 1=æ­£
 						bool exists = false;
-						bool isUEPath = false;		//UEƒpƒX‚©(/Game‚©‚ç‚ÌƒpƒX‚É‚È‚Á‚Ä‚¢‚é‚©)
+						bool isUEPath = false;		//UEãƒ‘ã‚¹ã‹(/Gameã‹ã‚‰ã®ãƒ‘ã‚¹ã«ãªã£ã¦ã„ã‚‹ã‹)
 					};
 					while (inputAsset != "-1") {
-						//“ü—Í
+						//å…¥åŠ›
 						wstring s;
 						getline(wcin, s);
 						bool isAbsolutePath = false;
 						bool existsFile = false;
 						/*
-						‘z’è‚³‚ê‚é“ü—Í
-						UE4ƒRƒsƒy
+						æƒ³å®šã•ã‚Œã‚‹å…¥åŠ›
+						UE4ã‚³ãƒ”ãƒš
 						PaperTileSet'/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet'
 						/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet
 						"D:\GE3A09\Unreal Projects\UE2D\Content\Assets\tilemap\tileset_field_TileSet.uasset"
 						D:\GE3A09\Unreal Projects\UE2D\Content\Assets\tilemap\tileset_field_TileSet.uasset
-						‚»‚êˆÈŠO‚Í‘Î‰‚µ‚Ü‚¹‚ñ@–³—
+						ãã‚Œä»¥å¤–ã¯å¯¾å¿œã—ã¾ã›ã‚“ã€€ç„¡ç†
 						*/
 						IMPORT_DATA_ATTR attr;
 						if (Like(inputAsset, "%/Game/%")) {
-							//UEƒpƒX‚Ì‚Æ‚«
-							OutText(L"“ÇŒ`®: UE Path");
+							//UEãƒ‘ã‚¹ã®ã¨ã
+							OutText(L"èª­è¾¼å½¢å¼: UE Path");
 							attr.isUEPath = true;
-							//ƒAƒZƒbƒg‚ÌŒ`®‚ğ“Ç‚İ‚Æ‚é(–¢À‘•)
+							//ã‚¢ã‚»ãƒƒãƒˆã®å½¢å¼ã‚’èª­ã¿ã¨ã‚‹(æœªå®Ÿè£…)
 							//attr.isPaperTileSet = ExtractImportData(UEDirectory + "\\")
 						}
 						else if(Like(inputAsset, "%:\\%.uasset%")){
-							//â‘ÎƒpƒX‚Ì‚Æ‚«
-							OutText(L"“ÇŒ`®: Absolute Path");
+							//çµ¶å¯¾ãƒ‘ã‚¹ã®ã¨ã
+							OutText(L"èª­è¾¼å½¢å¼: Absolute Path");
 
-							attr.isPaperTileSet = -1;	//ƒ^ƒCƒ‹ƒZƒbƒg‚©‚Í•s–¾(–¢À‘•)
-							attr.isUEPath = false;		//UEPath‚Å‚Í‚È‚¢
-							attr.exists = filesystem::exists(inputAsset);	//ƒtƒ@ƒCƒ‹‚ª‘¶İ‚·‚é‚©
+							attr.isPaperTileSet = -1;	//ã‚¿ã‚¤ãƒ«ã‚»ãƒƒãƒˆã‹ã¯ä¸æ˜(æœªå®Ÿè£…)
+							attr.isUEPath = false;		//UEPathã§ã¯ãªã„
+							attr.exists = filesystem::exists(inputAsset);	//ãƒ•ã‚¡ã‚¤ãƒ«ãŒå­˜åœ¨ã™ã‚‹ã‹
 
 						}
 
@@ -430,14 +435,14 @@ bool Parser::Read(wstring _path, json* _data)
 						//}
 
 
-						//‚»‚ÌƒpƒX‚ª‘¶İ‚·‚é‚©(‚È‚©‚Á‚½‚çŒx)
+						//ãã®ãƒ‘ã‚¹ãŒå­˜åœ¨ã™ã‚‹ã‹(ãªã‹ã£ãŸã‚‰è­¦å‘Š)
 						if(filesystem::exists(linkPathJson["projectPath"] + "\\Content\\"))
-						//³í‚É“ü—Í‚µ‚½‚Æ‚«								PaperTileSet'/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet'	
-						//“ü—Í“à—e‚ªâ‘ÎƒpƒX‚¾‚Á‚½‚Æ‚«
-						  //‚»‚ÌƒpƒX‚ÍŒ»İ‚ÌƒvƒƒWƒFƒNƒg‚©H(‚È‚¯‚ê‚ÎŒx)
+						//æ­£å¸¸ã«å…¥åŠ›ã—ãŸã¨ã								PaperTileSet'/Game/Assets/tilemap/tileset_field_TileSet.tileset_field_TileSet'	
+						//å…¥åŠ›å†…å®¹ãŒçµ¶å¯¾ãƒ‘ã‚¹ã ã£ãŸã¨ã
+						  //ãã®ãƒ‘ã‚¹ã¯ç¾åœ¨ã®ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆã‹ï¼Ÿ(ãªã‘ã‚Œã°è­¦å‘Š)
 						  
-						//ƒpƒX‚Ì‚¤‚¿A''‚ÅˆÍ‚Ü‚ê‚½•”•ª‚¾‚¯“ü—Í‚µ‚Ä‚«‚½‚Æ‚«
-						//“ü—Í‚µ‚½‚ªAƒ^ƒCƒ‹ƒZƒbƒg‚Å‚Í‚È‚¢ƒpƒX‚¾‚Á‚½ê‡(Œx)
+						//ãƒ‘ã‚¹ã®ã†ã¡ã€''ã§å›²ã¾ã‚ŒãŸéƒ¨åˆ†ã ã‘å…¥åŠ›ã—ã¦ããŸã¨ã
+						//å…¥åŠ›ã—ãŸãŒã€ã‚¿ã‚¤ãƒ«ã‚»ãƒƒãƒˆã§ã¯ãªã„ãƒ‘ã‚¹ã ã£ãŸå ´åˆ(è­¦å‘Š)
 						//
 						//cin.getline(inputAsset, sizeof(inputAsset));
 						u16string u16str;
@@ -465,7 +470,7 @@ bool Parser::Read(wstring _path, json* _data)
 						//cout << inputAsset << endl;
 					}
 					//ExtractTexture(inputAsset);
-					//OutText(sourcePath + " ‚Æ " + to_wstring(linkPathData[sameFileNameIndexes[inch - '1']]["ue4"]) + "‚ğƒŠƒ“ƒN‚µ‚Ü‚·B", OS_INFO);
+					//OutText(sourcePath + " ã¨ " + to_wstring(linkPathData[sameFileNameIndexes[inch - '1']]["ue4"]) + "ã‚’ãƒªãƒ³ã‚¯ã—ã¾ã™ã€‚", OS_INFO);
 				}
 
 			}
@@ -478,15 +483,14 @@ bool Parser::Read(wstring _path, json* _data)
 
 void Parser::Parse(wstring _path, json _data)
 {
-	//WH‚ğ‚Á‚Ä‚­‚é
+	//WHã‚’æŒã£ã¦ãã‚‹
 	int height = _data["height"];
 	int width = _data["width"];
 
-	//JSON‚Ìƒrƒ‹ƒhƒGƒ‰[‚É‘ÎR‚·‚×‚­‰äX‚ÍƒAƒ}ƒ]ƒ“‚Ì‰œ’n‚Ö‚ÆŒü‚©‚Á‚½
 
 	wstring outFile = outDir + filesystem::path(_path).stem().wstring();
 	if (filesystem::exists(outFile + L"_output.txt") || filesystem::exists(outFile + L".json")) {
-		OutText(L"o—ÍƒtƒHƒ‹ƒ_“à‚É‘I‘ğ‚µ‚½ƒtƒ@ƒCƒ‹‚Æ“¯‚¶–¼‘O‚Ìƒtƒ@ƒCƒ‹‚ª‘¶İ‚µ‚Ü‚·Bƒiƒ“ƒoƒŠƒ“ƒO‚ğs‚¢‚Ü‚·B", OS_WARNING);
+		OutText(L"å‡ºåŠ›ãƒ•ã‚©ãƒ«ãƒ€å†…ã«é¸æŠã—ãŸãƒ•ã‚¡ã‚¤ãƒ«ã¨åŒã˜åå‰ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒå­˜åœ¨ã—ã¾ã™ã€‚ãƒŠãƒ³ãƒãƒªãƒ³ã‚°ã‚’è¡Œã„ã¾ã™ã€‚", OS_WARNING);
 		time_t now = time(nullptr);
 		auto nowM = localtime(&now);
 		wostringstream wOss;
@@ -494,36 +498,37 @@ void Parser::Parse(wstring _path, json _data)
 		outFile += wOss.str();
 		wcout << outFile << endl;
 	}
-	
+	try{
 	wofstream output(outFile + L"_output.txt");
 	for (int layer = 0; layer < _data["layers"].size(); layer++) {
-		wstring layerName = _data["layers"][layer]["name"];
+		wstring layerName;
+		StoreWStr(&layerName, &_data["layers"][layer]["name"]);
 		output << L"Begin Object Class=/Script/Paper2D.PaperTileLayer Name=\"\"\n";
-		output << L"   LayerName=NSLOCTEXT(\"\", \"\", " << layerName << L")\n";
+		output << L"   LayerName=NSLOCTEXT(\"\", \"\", \"" << layerName << L"\")\n";
 		output << L"   LayerWidth=" << width << L"\n";
 		output << L"   LayerHeight=" << height << L"\n";
 		output << L"   AllocatedWidth=" << width << L"\n";
 		output << L"   AllocatedHeight=" << height << L"\n";
-		//‚±‚±‚Éƒ}ƒbƒv•ÏŠ·‹@\
+		//ã“ã“ã«ãƒãƒƒãƒ—å¤‰æ›æ©Ÿæ§‹
 		for (int h = 0; h < height; h++) {
 			for (int w = 0; w < width; w++) {
-				int index = h * width + w;	//ƒCƒ“ƒfƒbƒNƒXİ’è
-				unsigned int tiledValue = _data["layers"][layer]["data"][index];	//TILED‚Ìƒf[ƒ^’l
+				int index = h * width + w;	//ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹è¨­å®š
+				unsigned int tiledValue = _data["layers"][layer]["data"][index];	//TILEDã®ãƒ‡ãƒ¼ã‚¿å€¤
 
-				//’l‚ª0‚Ì‚Æ‚«‚Í‰½‚à‚È‚¢‚Ì‚ÅƒXƒLƒbƒv
-				//(ÅŒã‚Ì’l‚Ì‚Æ‚«‚Ì‚İA‹ó‚Ìê‡‚Å‚à¶¬)
+				//å€¤ãŒ0ã®ã¨ãã¯ä½•ã‚‚ãªã„ã®ã§ã‚¹ã‚­ãƒƒãƒ—
+				//(æœ€å¾Œã®å€¤ã®ã¨ãã®ã¿ã€ç©ºã®å ´åˆã§ã‚‚ç”Ÿæˆ)
 				if (tiledValue != 0) {
-					//ƒf[ƒ^•ÏŠ·ŠÖ”
+					//ãƒ‡ãƒ¼ã‚¿å¤‰æ›é–¢æ•°
 					wstring ueTileset = L"";
 					int uePackedTileIndex = -1;
 					ConvertData(tiledValue, &ueTileset, &uePackedTileIndex);
 
-					//•ÏŠ·¸”s‚Éo‚é’l‚ª‹A‚Á‚Ä‚«‚½‚Æ‚«ˆ—I—¹
+					//å¤‰æ›å¤±æ•—æ™‚ã«å‡ºã‚‹å€¤ãŒå¸°ã£ã¦ããŸã¨ãå‡¦ç†çµ‚äº†
 					if (ueTileset != L"" && uePackedTileIndex != -1) {
 						output << L"   AllocatedCells(" << index << L")=(TileSet=PaperTileSet'\"" << ueTileset << L"\"',PackedTileIndex=" << uePackedTileIndex << L")\n";
 					}
 					else {
-						OutText(L"•ÏŠ·‚É¸”s‚µ‚Ü‚µ‚½B(" + to_wstring(index) + L")", OS_ERROR);
+						OutText(L"å¤‰æ›ã«å¤±æ•—ã—ã¾ã—ãŸã€‚(" + to_wstring(index) + L")", OS_ERROR);
 						return;
 					}
 				}
@@ -544,38 +549,42 @@ void Parser::Parse(wstring _path, json _data)
 	{"version", _data["version"]}
 		}
 	);
+	} catch (json::type_error e) {
+		wstring eWStr = GetWC(e.what());
+		OutText(L"ä¿å­˜æ™‚ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ(" + eWStr + L")", OS_ERROR);
+	}
 }
 
 bool Parser::End() {
 
-	std::wcout << L"‰½‚©ƒL[‚ğ‰Ÿ‚µ‚Ä‚­‚¾‚³‚¢..." << std::endl;
-	_getch(); // ƒL[“ü—Í‚ğ‘Ò‹@i“ü—Í“à—e‚Í•\¦‚³‚ê‚È‚¢j
+	std::wcout << L"ä½•ã‹ã‚­ãƒ¼ã‚’æŠ¼ã—ã¦ãã ã•ã„..." << std::endl;
+	_getch(); // ã‚­ãƒ¼å…¥åŠ›ã‚’å¾…æ©Ÿï¼ˆå…¥åŠ›å†…å®¹ã¯è¡¨ç¤ºã•ã‚Œãªã„ï¼‰
 	return 0;
 }
 void Parser::Result() {
-	wcout << endl << L"ˆ—‚ªI—¹‚µ‚Ü‚µ‚½B" << endl;
+	wcout << endl << L"å‡¦ç†ãŒçµ‚äº†ã—ã¾ã—ãŸã€‚" << endl;
 	End();
 }
 
-//‚±‚±‚Ìˆ—‚ğ‚©‚¢‚Ä‚¨‚í‚è ‘½•ª‚»‚¤‚Å‚à‚È‚¢‚¯‚Ç
+//ã“ã“ã®å‡¦ç†ã‚’ã‹ã„ã¦ãŠã‚ã‚Š å¤šåˆ†ãã†ã§ã‚‚ãªã„ã‘ã©
 void Parser::ConvertData(unsigned int tiledValue, wstring* uePath, int* ueTileValue) {
 	json& linkData = linkPathJson["linkData"];
 	/*
 	Tiled Format -> UE4 Format
 	unsigned int -> singed int
-	* 32bit:Y”½“](‚’¼”½“])
-	* 31bit:X”½“](…•½”½“])
-	* 30bit:Î”½“]
+	* 32bit:Yåè»¢(å‚ç›´åè»¢)
+	* 31bit:Xåè»¢(æ°´å¹³åè»¢)
+	* 30bit:æ–œåè»¢
 			0  90 180         270
-	 Œv 000 101 110(XY”½“]) 011
-	X”½“] 100 111 010(Y”½“])  001
+	 æ™‚è¨ˆ 000 101 110(XYåè»¢) 011
+	Xåè»¢ 100 111 010(Yåè»¢)  001
 
 	*/
-	int gid = tiledValue & (int)(pow(2, 29) - 1);	//29ƒrƒbƒg–Ú‚Ü‚Å‚Æ‚é
+	int gid = tiledValue & (int)(pow(2, 29) - 1);	//29ãƒ“ãƒƒãƒˆç›®ã¾ã§ã¨ã‚‹
 	try {
-		//ƒ^ƒCƒ‹ƒZƒbƒgID(json“àƒ^ƒCƒ‹ƒZƒbƒgƒŠƒXƒg‚ÌƒCƒ“ƒfƒbƒNƒX)‚ğIDƒfƒJ‚¢‚Ù‚¤‚©‚ç’Tõ
+		//ã‚¿ã‚¤ãƒ«ã‚»ãƒƒãƒˆID(jsonå†…ã‚¿ã‚¤ãƒ«ã‚»ãƒƒãƒˆãƒªã‚¹ãƒˆã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹)ã‚’IDãƒ‡ã‚«ã„ã»ã†ã‹ã‚‰æ¢ç´¢
 		for (int tilesetID = data["tilesets"].size() - 1; tilesetID >= 0; tilesetID--) {
-			//ƒ^ƒCƒ‹ƒZƒbƒgƒŠƒXƒg‚ÉŠi”[‚³‚ê‚½ƒOƒ[ƒoƒ‹ID‚Æ”äŠrA‚»‚ê‚æ‚è‚àŒ»İƒ^ƒCƒ‹‚Ì’l‚ª‘å‚«‚¯‚ê‚ÎUEƒpƒX‚ÆUEƒ^ƒCƒ‹’l‚ğŠi”[
+			//ã‚¿ã‚¤ãƒ«ã‚»ãƒƒãƒˆãƒªã‚¹ãƒˆã«æ ¼ç´ã•ã‚ŒãŸã‚°ãƒ­ãƒ¼ãƒãƒ«IDã¨æ¯”è¼ƒã€ãã‚Œã‚ˆã‚Šã‚‚ç¾åœ¨ã‚¿ã‚¤ãƒ«ã®å€¤ãŒå¤§ãã‘ã‚Œã°UEãƒ‘ã‚¹ã¨UEã‚¿ã‚¤ãƒ«å€¤ã‚’æ ¼ç´
 			if (gid >= data["tilesets"][tilesetID]["firstgid"]) {
 				StoreWStr(uePath, &linkData[useLinkDataIndexes[tilesetID]]["ue4"]);
 				*ueTileValue = tiledValue - data["tilesets"][tilesetID]["firstgid"];
@@ -585,7 +594,7 @@ void Parser::ConvertData(unsigned int tiledValue, wstring* uePath, int* ueTileVa
 		}
 	}
 	catch (json::type_error &e) {
-		OutText(L"ƒ}ƒbƒvƒf[ƒ^‚Ü‚½‚ÍƒŠƒ“ƒNƒtƒ@ƒCƒ‹‚É•K—v‚Æ‚È‚éƒL[‚ª‘¶İ‚µ‚È‚¢‚©A•s³‚È’l‚ª“ü‚Á‚Ä‚¢‚Ü‚·B•ÏŠ·‚ğ’†~‚µ‚Ü‚·B", OS_ERROR);
+		OutText(L"ãƒãƒƒãƒ—ãƒ‡ãƒ¼ã‚¿ã¾ãŸã¯ãƒªãƒ³ã‚¯ãƒ•ã‚¡ã‚¤ãƒ«ã«å¿…è¦ã¨ãªã‚‹ã‚­ãƒ¼ãŒå­˜åœ¨ã—ãªã„ã‹ã€ä¸æ­£ãªå€¤ãŒå…¥ã£ã¦ã„ã¾ã™ã€‚å¤‰æ›ã‚’ä¸­æ­¢ã—ã¾ã™ã€‚", OS_ERROR);
 		return;
 	}
 }
@@ -593,44 +602,59 @@ void Parser::ConvertData(unsigned int tiledValue, wstring* uePath, int* ueTileVa
 wstring Parser::GetStem(wstring path)
 {
 	wstring ret = filesystem::path(path).stem().wstring();
-	//cout << "ƒXƒeƒ€‚ğæ‚éF" << path << " -> " << ret << endl;
+	//cout << "ã‚¹ãƒ†ãƒ ã‚’å–ã‚‹ï¼š" << path << " -> " << ret << endl;
 	return ret;
 }
 
 void Parser::AddLinkDataW(wstring tiled_sourcePath, wstring ue4_path)
 {
 	json& linkData = linkPathJson["linkData"];
-	//ƒŠƒ“ƒNˆ—
-	OutText(tiled_sourcePath + L" ‚Æ " + ue4_path + L"‚ğƒŠƒ“ƒN‚µ‚Ü‚·B", OS_INFO);
+	//ãƒªãƒ³ã‚¯å‡¦ç†
+	OutText(tiled_sourcePath + L" ã¨ " + ue4_path + L"ã‚’ãƒªãƒ³ã‚¯ã—ã¾ã™ã€‚", OS_INFO);
 	json value;
-	value += json::object_t::value_type("tiled", tiled_sourcePath);
-	value += json::object_t::value_type("ue4", ue4_path);
+	value += json::object_t::value_type("tiled", ConvStr(tiled_sourcePath));
+	value += json::object_t::value_type("ue4", ConvStr(ue4_path));
 	try {
 		linkData.push_back(value);
-		OutputJson(parentDir + L"\\linkPath‚Q‚¤‚¨ˆì.json", linkPathJson);
+		OutputJson(parentDir + L"\\linkPathï¼’ã†ãŠæº¢.json", linkPathJson);
 	}
 	catch (json::type_error e) {
-		OutText(L"•Û‘¶‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½(", OS_ERROR);
-		OutText(L"•Û‘¶‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½(" + *GetWC(e.what()), OS_ERROR);
+		wstring eWStr = GetWC(e.what());
+		OutText(L"ä¿å­˜æ™‚ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ(" + eWStr + L")", OS_ERROR);
 	}
 }
 
 void Parser::StoreWStr(wstring* wstr, json* j)
 {
-	// UTF-8 ‚ğ UTF-16 (ƒƒCƒh•¶š—ñ) ‚É•ÏŠ·
+	// UTF-8 ã‚’ UTF-16 (ãƒ¯ã‚¤ãƒ‰æ–‡å­—åˆ—) ã«å¤‰æ›
 
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-	*wstr = converter.from_bytes(j->get<string>());
+	try {
+		*wstr = converter.from_bytes(j->get<string>());
+	}
+	catch (json::type_error e) {
+		wstring eWStr = GetWC(e.what());
+		OutText(L"jsonã«æ ¼ç´ã•ã‚ŒãŸãƒ‡ãƒ¼ã‚¿ã‚’æ–‡å­—åˆ—ã¨ã—ã¦èªè­˜ã§ãã¾ã›ã‚“ã§ã—ãŸ(" + eWStr + L")", OS_ERROR);
+	}
 
 }
 
-wchar_t* Parser::StoreWC(wchar_t* wc, const char* c)
+wchar_t* Parser::GetWC(const char* c)
 {
 	const size_t cSize = strlen(c) + 1;
 	wchar_t* wc = new wchar_t[cSize];
 	mbstowcs(wc, c, cSize);
 
 	return wc;
+}
+
+string Parser::ConvStr(wstring& src)
+{
+	std::wstring_convert<std::codecvt_utf8<wchar_t> > converter;
+	return converter.to_bytes(src);
+
+	//https://github.com/nlohmann/json/issues/1831
+	//UTF-8ã¨ã—ã¦èªè­˜ã—ã¦ãªã„ã®ã‹ã€å¯¾å¿œã—ã¦ãªã„ã®ã‹ã€€èª­è¾¼ã¯ã§ãã‚“ã®ã«ï¼Ÿ
 }
 
 char Parser::GetKey(wstring descr)
@@ -664,17 +688,15 @@ bool Parser::InputBool(wstring descr)
 
 void Parser::OutputJson(wstring filePath, json content)
 {
-	if (((filesystem::path)(filePath)).extension().wstring() != L".json") OutText(L"JSONŒ`®‚Åo—Í‚³‚ê‚éƒtƒ@ƒCƒ‹‚ÌŠg’£q‚ª.json‚Å‚Í‚ ‚è‚Ü‚¹‚ñBg—p‚·‚éÛ‚Í‚²’ˆÓ‚­‚¾‚³‚¢B", OS_WARNING);
-	wofstream wout(filePath);
-	wstring ws;
-	StoreWStr(&ws, &content);
-	wout << ws;
-	//wout << content.dump(2);
-	wout.close();
+	//jsonã®æ ¼ç´ã¯stringã§è‰¯ã„ã“ã¨ãŒç™ºè¦š
+	if (((filesystem::path)(filePath)).extension().wstring() != L".json") OutText(L"JSONå½¢å¼ã§å‡ºåŠ›ã•ã‚Œã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®æ‹¡å¼µå­ãŒ.jsonã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚ä½¿ç”¨ã™ã‚‹éš›ã¯ã”æ³¨æ„ãã ã•ã„ã€‚", OS_WARNING);
+	ofstream out(filePath);
+	out << content.dump(2);
+	out.close();
 }
 
 //void Parser::OutText(string str, OUTPUT_STATE outState) {
-//	wcout << "A‚Ëƒf";
+//	wcout << "Aã­ãƒ‡";
 //	switch (outState)
 //	{
 //	case OS_NONE:		wcout << " ";						break;
@@ -701,7 +723,7 @@ void Parser::OutText(wstring wstr, OUTPUT_STATE outState) {
 bool Parser::BreakNIsContinue(wstring warnStr)
 {
 	OutText(warnStr, OS_WARNING);
-	return InputBool(L"‘±s‚µ‚Ü‚·‚©H");
+	return InputBool(L"ç¶šè¡Œã—ã¾ã™ã‹ï¼Ÿ");
 }
 
 void Parser::PrintStrList(vector<wstring>* descrList, int startNum)
@@ -715,17 +737,17 @@ void Parser::PrintStrList(vector<wstring>* descrList, int startNum)
 
 bool Parser::Like(string val, string search)
 {
-	//³‹K•\Œ»•ÏŠ·
+	//æ­£è¦è¡¨ç¾å¤‰æ›
 	string regexPattern;
 	for (char c : search) {
 		switch (c) {
-		case '%': // ”CˆÓ‚Ì•¶š—ñ‚É‘Î‰
+		case '%': // ä»»æ„ã®æ–‡å­—åˆ—ã«å¯¾å¿œ
 			regexPattern += ".*";
 			break;
-		case '_': // ”CˆÓ‚Ì1•¶š‚É‘Î‰
+		case '_': // ä»»æ„ã®1æ–‡å­—ã«å¯¾å¿œ
 			regexPattern += ".";
 			break;
-		case '.': // '.'‚Í³‹K•\Œ»‚Å“Áê•¶š‚È‚Ì‚ÅƒGƒXƒP[ƒv
+		case '.': // '.'ã¯æ­£è¦è¡¨ç¾ã§ç‰¹æ®Šæ–‡å­—ãªã®ã§ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—
 		case '^':
 		case '$':
 		case '|':
@@ -736,19 +758,19 @@ bool Parser::Like(string val, string search)
 		case '*':
 		case '+':
 		case '?':
-		case '\\': // '\'‚àƒGƒXƒP[ƒv‚ª•K—v
+		case '\\': // '\'ã‚‚ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—ãŒå¿…è¦
 			regexPattern += '\\';
 			[[fallthrough]];
-		default: // ‚»‚êˆÈŠO‚Ì•¶š
+		default: // ãã‚Œä»¥å¤–ã®æ–‡å­—
 			regexPattern += c;
 			break;
 		}
 	}
 
-	//³‹K•\Œ»ƒIƒuƒWƒFƒNƒgì¬(icase‚Å‘å•¶š¬•¶š‚ğ–³‹)
+	//æ­£è¦è¡¨ç¾ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆä½œæˆ(icaseã§å¤§æ–‡å­—å°æ–‡å­—ã‚’ç„¡è¦–)
 	std::regex re(regexPattern, std::regex::icase);
 
-	//”»’è
+	//åˆ¤å®š
 	return std::regex_match(val, re);
 }
 
@@ -778,14 +800,14 @@ wstring Parser::PGetCurrentDirectoryW()
 
 /*
 TODO
-ƒpƒX‚ªŒ©‚Â‚©‚ç‚È‚¢‚Æ‚«‚ÉƒGƒ‰[“f‚¢‚Ä‹­§I—¹‚·‚éƒoƒO
-•¡”‘I‘ğ(”ñD&D)
+ãƒ‘ã‚¹ãŒè¦‹ã¤ã‹ã‚‰ãªã„ã¨ãã«ã‚¨ãƒ©ãƒ¼åã„ã¦å¼·åˆ¶çµ‚äº†ã™ã‚‹ãƒã‚°
+è¤‡æ•°é¸æŠ(éD&Dæ™‚)
 
 issue
-“¯–¼‚ÌƒŠƒ“ƒNƒf[ƒ^‚ª8‚ÂˆÈã‚ ‚Á‚½‚Æ‚«A8ˆÈ~‚Ìƒf[ƒ^‚ª•\¦‚³‚ê‚È‚¢(8‚Æ9‚ÉpageUp/Down‚ğŠ„‚è“–‚Ä‚Ä‚é‚½‚ß)
+åŒåã®ãƒªãƒ³ã‚¯ãƒ‡ãƒ¼ã‚¿ãŒ8ã¤ä»¥ä¸Šã‚ã£ãŸã¨ãã€8ä»¥é™ã®ãƒ‡ãƒ¼ã‚¿ãŒè¡¨ç¤ºã•ã‚Œãªã„(8ã¨9ã«pageUp/Downã‚’å‰²ã‚Šå½“ã¦ã¦ã‚‹ãŸã‚)
 
 
 memo
 
-250108 LIKE‚ğÀ‘•
+250108 LIKEã‚’å®Ÿè£…
 */

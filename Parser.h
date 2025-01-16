@@ -72,6 +72,7 @@ private:
 	//変換関数
 	void StoreWStr(wstring* wstr, json* j);
 	wchar_t* GetWC(const char* c);
+	string ConvStr(wstring& src);
 	// ===================== 汎用入出力関数 =====================
 	//キー入力(isgraph)
 	char GetKey(wstring descr = L"");
